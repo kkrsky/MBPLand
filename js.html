@@ -1,0 +1,112 @@
+<!--<script src="https://cdn.jsdelivr.net/npm/vue@2.5.17/dist/vue.js"></script>-->
+<script src="https://cdn.jsdelivr.net/npm/vue@2.x/dist/vue.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/vuetify@2.x/dist/vuetify.js"></script>
+<script src="https://unpkg.com/vue-router/dist/vue-router.js"></script>
+<script src="https://unpkg.com/vuex"></script>
+<script src="https://cdn.jsdelivr.net/npm/es6-promise@4/dist/es6-promise.auto.js"></script>
+
+<script>
+  google.script.run.withSuccessHandler(initializeVue).getSpreadsheetName();
+
+  var page1 = "<div>ページ１を表示</div>";
+  var page2 = "<div>ページ２を表示</div>";
+  var home = "<div>home</div>";
+  var settings = "<div>settings</div>";
+  var about = "<div>about</div>";
+  var login = "<div>login</div>";
+  var test = "<div>test</div>";
+  function initializeVue(ssName) {
+    new Vue({
+      el: "#app",
+      vuetify: new Vuetify(),
+      router: new VueRouter({
+        mode: "history",
+        // base:'/app/public/',
+        routes: [
+          {
+            path: "/",
+            component: {
+              template: home,
+            },
+          },
+          {
+            path: "/test",
+            component: {
+              template: test,
+            },
+          },
+          {
+            path: "/settings",
+            component: {
+              template: settings,
+            },
+          },
+          {
+            path: "/about",
+            component: {
+              template: about,
+            },
+          },
+          {
+            path: "/login",
+            component: {
+              template: login,
+            },
+          },
+          {
+            path: "/page1",
+            component: {
+              template: page1,
+            },
+          },
+          {
+            path: "/page2",
+            component: {
+              template: page2,
+            },
+          },
+        ],
+      }),
+      store: new Vuex.Store({
+        state: {
+          count: 0,
+          user: "",
+        },
+        mutations: {
+          increment(state) {
+            state.count++;
+          },
+          user: (state, payload) => (state.user = payload),
+        },
+      }),
+      data: {
+        ssName: ssName,
+        leftMiniVariant: false,
+        leftDrawer: false,
+        rightDrawer: false,
+        selectedItem: 1,
+        leftDrowerList: [
+          { text: "ダッシュボード", icon: "mdi-laptop", goto: "/" },
+          { text: "設定", icon: "mdi-settings", goto: "settings" },
+          { text: "テスト", icon: "mdi-flag", goto: "test" },
+        ],
+      },
+      methods: {
+        changeMessage: function () {
+          this.ssName = "Hello JavaScript!";
+        },
+      },
+    });
+  }
+  // var app = new Vue({
+  //   el: "#app",
+  //   data: {
+  //     message: "Hello GAS!",
+  //   },
+  //   methods: {
+  //     changeMessage: function () {
+  //       this.message = "Hello JavaScript!";
+  //     },
+  //   },
+  //});
+</script>
