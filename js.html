@@ -86,15 +86,27 @@
         rightDrawer: false,
         selectedItem: 1,
         leftDrowerList: [
-          { text: "ダッシュボード", icon: "mdi-laptop", goto: "/" },
-          { text: "設定", icon: "mdi-settings", goto: "settings" },
-          { text: "テスト", icon: "mdi-flag", goto: "test" },
+          {id:0, text: "全体のお知らせ", icon: "mdi-newspaper", goto: "/",isShow:true },
+          {id:1, text: "みんなのおかねのやりとり", icon: "mdi-credit-card-multiple", goto: "/" ,isShow:true},
+          {id:2, text: "あなたのおかねのやりとり", icon: "mdi-credit-card", goto: "/" ,isShow:true},
+          {id:3, text: "支払いリスト", icon: "mdi-export", goto: "/",isShow:true },
+          {id:4, text: "請求リスト", icon: "mdi-import", goto: "/" ,isShow:true},
+          {id:5, text: "請求を追加", icon: "mdi-import", goto: "/" ,isShow:true},
+          {id:6, text: "設定", icon: "mdi-settings", goto: "settings" ,isShow:true},
+          {id:7, text: "テスト", icon: "mdi-flag", goto: "test" ,isShow:true},
         ],
       },
       methods: {
         changeMessage: function () {
           this.ssName = "Hello JavaScript!";
         },
+        findDisplayPageById(id){
+          return this.leftDrowerList.find(list=>{return list.id===id})
+        },
+        isShowDisplayById(id){
+          console.log(this.findDisplayPageById(id).isShow)
+          return this.findDisplayPageById(id).isShow
+        }
       },
     });
   }

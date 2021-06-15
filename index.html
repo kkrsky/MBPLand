@@ -32,6 +32,7 @@
     <!-- ここにbodyを記述していく -->
     <div id="app">
       <v-app>
+        <!-- ナビゲーター -->
         <v-navigation-drawer
           app
           clipped
@@ -41,12 +42,15 @@
         >
           <v-list dense>
             <v-subheader>Menue</v-subheader>
-            <v-list-item-group v-model="selectedItem" color="primary">
+            <v-list-item-group>
+              <!-- v-model="selectedItem" color="primary" -->
               <v-list-item
                 v-for="(item, i) in leftDrowerList"
-                :to="item.goto"
-                :key="i"
+                @click="item.isShow=!item.isShow"
+                :key="item.id"
+                :class="item.isShow ? '' :'semi-disable' "
               >
+                <!-- :to="item.goto" -->
                 <v-list-item-icon>
                   <v-icon v-text="item.icon"></v-icon>
                 </v-list-item-icon>
@@ -57,7 +61,7 @@
             </v-list-item-group>
           </v-list>
         </v-navigation-drawer>
-
+        <!-- トップバー -->
         <v-app-bar app>
           <v-app-bar-nav-icon
             @click="leftDrawer=!leftDrawer"
@@ -70,11 +74,20 @@
           <v-toolbar-title>Title</v-toolbar-title>
         </v-app-bar>
 
+        <!-- メイン -->
         <v-content>
-          <p>v-content</p>
-          <router-view
-        /></v-content>
+          <div v-show="isShowDisplayById(0)">全体のお知らせ</div>
+          <div v-show="isShowDisplayById(1)">みんなのおかねのやりとり</div>
+          <div v-show="isShowDisplayById(2)">あなたのおかねのやりとり</div>
+          <div v-show="isShowDisplayById(3)">支払いリスト</div>
+          <div v-show="isShowDisplayById(4)">請求リスト</div>
+          <div v-show="isShowDisplayById(5)">請求を追加</div>
+          <div v-show="isShowDisplayById(6)">設定</div>
+          <div v-show="isShowDisplayById(7)">テスト</div>
+          <router-view />
+        </v-content>
 
+        <!-- フッター -->
         <v-footer fixed app
           ><span>&copy; 2021 Mannenbashi Park Land</span></v-footer
         >
