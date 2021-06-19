@@ -10,6 +10,19 @@
     google.script.run.withSuccessHandler(コールバック関数).関数(引数1, 引数2,…)でコールバック化
     失敗した場合withFailureHandlerを使う
     -->
+
+    <!-- https://tonari-it.com/gas-url-doget-parameter/
+    GAS URLにパラメータ情報をつける
+    -->
+
+    <!-- https://tonari-it.com/gas-web-appli-function-return/
+    スクリプトの実行結果をページに出力する
+    -->
+
+    <!-- https://sites.google.com/site/appsmatome/home/ui/htmlservices
+    GASを使い倒す。
+    doGetから取得したパラメータをスプリクト化してHTMLに埋め込むなど。（図：スプレッドシートのデータを整形してダイアログとして表示させてみた）
+    -->
     <link
       href="https://fonts.googleapis.com/css?family=Roboto:100,300,400,500,700,900"
       rel="stylesheet"
@@ -83,7 +96,7 @@
           <div v-show="isShowDisplayById(4)">請求リスト</div>
           <div v-show="isShowDisplayById(5)">請求を追加</div>
           <div v-show="isShowDisplayById(6)">設定</div>
-          <div v-show="isShowDisplayById(7)">テスト</div>
+          <div v-show="isShowDisplayById(7)" @click="test2">テスト</div>
           <router-view />
         </v-content>
 

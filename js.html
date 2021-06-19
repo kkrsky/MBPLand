@@ -7,7 +7,9 @@
 
 <script>
   google.script.run.withSuccessHandler(initializeVue).getSpreadsheetName();
-
+  let global = {
+    gas: "",
+  };
   var page1 = "<div>ページ１を表示</div>";
   var page2 = "<div>ページ２を表示</div>";
   var home = "<div>home</div>";
@@ -15,6 +17,9 @@
   var about = "<div>about</div>";
   var login = "<div>login</div>";
   var test = "<div>test</div>";
+  function initGlobalData(data) {
+    global.gas = JSON.parse(data);
+  }
   function initializeVue(ssName) {
     new Vue({
       el: "#app",
@@ -86,27 +91,80 @@
         rightDrawer: false,
         selectedItem: 1,
         leftDrowerList: [
-          {id:0, text: "全体のお知らせ", icon: "mdi-newspaper", goto: "/",isShow:true },
-          {id:1, text: "みんなのおかねのやりとり", icon: "mdi-credit-card-multiple", goto: "/" ,isShow:true},
-          {id:2, text: "あなたのおかねのやりとり", icon: "mdi-credit-card", goto: "/" ,isShow:true},
-          {id:3, text: "支払いリスト", icon: "mdi-export", goto: "/",isShow:true },
-          {id:4, text: "請求リスト", icon: "mdi-import", goto: "/" ,isShow:true},
-          {id:5, text: "請求を追加", icon: "mdi-import", goto: "/" ,isShow:true},
-          {id:6, text: "設定", icon: "mdi-settings", goto: "settings" ,isShow:true},
-          {id:7, text: "テスト", icon: "mdi-flag", goto: "test" ,isShow:true},
+          {
+            id: 0,
+            text: "全体のお知らせ",
+            icon: "mdi-newspaper",
+            goto: "/",
+            isShow: true,
+          },
+          {
+            id: 1,
+            text: "みんなのおかねのやりとり",
+            icon: "mdi-credit-card-multiple",
+            goto: "/",
+            isShow: true,
+          },
+          {
+            id: 2,
+            text: "あなたのおかねのやりとり",
+            icon: "mdi-credit-card",
+            goto: "/",
+            isShow: true,
+          },
+          {
+            id: 3,
+            text: "支払いリスト",
+            icon: "mdi-export",
+            goto: "/",
+            isShow: true,
+          },
+          {
+            id: 4,
+            text: "請求リスト",
+            icon: "mdi-import",
+            goto: "/",
+            isShow: true,
+          },
+          {
+            id: 5,
+            text: "請求を追加",
+            icon: "mdi-import",
+            goto: "/",
+            isShow: true,
+          },
+          {
+            id: 6,
+            text: "設定",
+            icon: "mdi-settings",
+            goto: "settings",
+            isShow: true,
+          },
+          {
+            id: 7,
+            text: "テスト",
+            icon: "mdi-flag",
+            goto: "test",
+            isShow: true,
+          },
         ],
       },
       methods: {
+        test2(item) {
+          console.log("2", global);
+        },
         changeMessage: function () {
           this.ssName = "Hello JavaScript!";
         },
-        findDisplayPageById(id){
-          return this.leftDrowerList.find(list=>{return list.id===id})
+        findDisplayPageById(id) {
+          return this.leftDrowerList.find((list) => {
+            return list.id === id;
+          });
         },
-        isShowDisplayById(id){
-          console.log(this.findDisplayPageById(id).isShow)
-          return this.findDisplayPageById(id).isShow
-        }
+        isShowDisplayById(id) {
+          console.log(this.findDisplayPageById(id).isShow);
+          return this.findDisplayPageById(id).isShow;
+        },
       },
     });
   }
