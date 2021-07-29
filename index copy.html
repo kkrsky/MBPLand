@@ -43,33 +43,9 @@
   </head>
   <body>
     <!-- ここにbodyを記述していく -->
-    <div id="splash"></div>
-    <div id="app" style="display: none">
-      <!-- <v-app v-show="!deviceready"> 読み込み中 </v-app> -->
-      <v-app v-show="deviceready">
-        <!-- <v-app> -->
-        <!-- loading -->
-        <v-container id="LoadingContainer" v-show="loadingObj.isLoading">
-          <!-- <v-container id="LoadingContainer"> -->
-          <v-row class="circular">
-            <v-col>
-              <v-progress-circular indeterminate />
-            </v-col>
-          </v-row>
-          <v-row>
-            <v-col>
-              <div class="message" v-show="loadingObj.message">
-                {{ loadingObj.message }}
-              </div>
-            </v-col>
-          </v-row>
-        </v-container>
-        <!-- snackBar -->
-        <v-snackbar v-model="isSnackbar" app top :timeout="snackbarObj.timeout"
-          >{{ snackbarObj.message }}</v-snackbar
-        >
+    <div id="app">
+      <v-app>
         <!-- ナビゲーター -->
-
         <v-navigation-drawer
           app
           clipped
@@ -80,7 +56,9 @@
           <v-list dense>
             <v-list-item class="px-2">
               <v-list-item-avatar>
-                <v-img :src="userObj.iconUrl"></v-img>
+                <v-img
+                  src="https://randomuser.me/api/portraits/women/85.jpg"
+                ></v-img>
               </v-list-item-avatar>
               <v-list-item-content>
                 <v-list-item-title>{{userObj.name}}</v-list-item-title>
@@ -127,14 +105,9 @@
           <div v-show="isShowDisplayById(2)">あなたのおかねのやりとり</div>
           <div v-show="isShowDisplayById(3)">支払いリスト</div>
           <div v-show="isShowDisplayById(4)">請求リスト</div>
-          <div v-show="isShowDisplayById(5)">
-            <?!= HtmlService.createHtmlOutputFromFile('subscribe').getContent(); ?>
-          </div>
+          <div v-show="isShowDisplayById(5)">請求を追加</div>
           <div v-show="isShowDisplayById(6)">設定</div>
           <div v-show="isShowDisplayById(7)" @click="test2">テスト</div>
-          <div v-show="isShowDisplayById(8)">
-            <?!= HtmlService.createHtmlOutputFromFile('test').getContent(); ?>
-          </div>
           <router-view />
         </v-main>
 

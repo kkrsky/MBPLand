@@ -1,0 +1,64 @@
+.semi-disable {
+  background-color: lightgray;
+}
+.subscribe-card {
+  width: 90%;
+}
+
+#subscribe {
+  .v-application--wrap {
+    display: flex;
+    align-items: center;
+  }
+  .photo-upload-title {
+    display: flex;
+    justify-content: space-around;
+  }
+  .photo-upload-container {
+    display: flex;
+    justify-content: center;
+  }
+  .submit-container {
+    display: flex;
+    justify-content: center;
+  }
+
+  .select-subscribe-title {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: x-large;
+    font-weight: bold;
+    text-decoration: underline;
+  }
+  .additional-list-btn-container {
+    display: flex;
+    justify-content: space-around;
+  }
+}
+
+#LoadingContainer {
+  // display: flex;
+
+  max-width: 100%;
+  height: 100vh;
+  z-index: 9999;
+  position: fixed;
+  background-color: rgba(#000, 0.8);
+  color: white;
+  .circular {
+    padding-top: 30vh;
+  }
+  .col {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  .v-progress-circular {
+    height: 20vw !important;
+    width: 20vw !important;
+  }
+  .message {
+    font-size: 3rem;
+  }
+}

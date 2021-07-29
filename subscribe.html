@@ -1,0 +1,242 @@
+<div id="subscribe">
+  <v-app>
+    <v-card class="subscribe-card">
+      <v-form action="" :ref="subscObj.refName">
+        <!-- <v-container>
+          <v-row>
+            <v-col> -->
+        <v-container>
+          <v-select
+            v-model="subscObj.selectItemArry"
+            :items="subscObj.list"
+            label="Subscribe List(*MUST)"
+            chips
+            multiple
+            hint="購入した品目を選択してください。"
+            persistent-hint
+          >
+          </v-select>
+          <!-- <v-text-field
+            v-model="subscObj.selectItemArry[0]"
+            style="display: none"
+            :rules="[validateRules.required]"
+          ></v-text-field> -->
+
+          <div class="mt-5"></div>
+          <v-card v-for="(item,index) in subscObj.selectItemArry" :key="item">
+            <v-row>
+              <v-col class="select-subscribe-title"> {{item}} </v-col>
+              <v-col>
+                <div style="display: none">
+                  {{subscObj.selectPriceTypeArry[index]?null:subscObj.selectPriceTypeArry[index]=subscObj.writePriceType[0]}}
+                </div>
+                <v-select
+                  v-model="subscObj.selectPriceTypeArry[index]"
+                  :items="subscObj.writePriceType"
+                  label="金額の記入方式"
+                  chips
+                >
+                </v-select>
+              </v-col>
+            </v-row>
+            <v-row>
+              <v-col>
+                <v-text-field
+                  v-model="subscObj.selectItemPriceArry[index]"
+                  :label="'金額'"
+                  :rules="[validateRules.required,validateRules.number]"
+                >
+                </v-text-field>
+              </v-col>
+
+              <v-col>
+                <v-text-field
+                  v-model="subscObj.selectItemNumArry[index]"
+                  :label="'購入数'"
+                  :rules="[validateRules.required,validateRules.number,validateRules.exceptZero]"
+                >
+                </v-text-field>
+              </v-col>
+            </v-row>
+
+            <v-divider></v-divider>
+          </v-card>
+
+          <div class="mt-5"></div>
+
+          <div class="additional-list-btn-container">
+            <v-btn rounded @click="subscObj.addItemNum++"
+              ><v-icon left> mdi-plus </v-icon>リストに追加</v-btn
+            ><v-btn rounded @click="subscObj.otherItemNum++"
+              ><v-icon left> mdi-plus </v-icon>その他の品</v-btn
+            >
+          </div>
+          <div class="mt-5"></div>
+
+          <v-card
+            v-for="addItemNum in subscObj.addItemNum"
+            :key="'add-'+addItemNum"
+          >
+            <v-row>
+              <v-col class="select-subscribe-title"
+                >{{subscObj.listAddName}}
+              </v-col>
+              <v-col>
+                <div style="display: none">
+                  {{subscObj.addPriceTypeArry[addItemNum-1]?null:subscObj.addPriceTypeArry[addItemNum-1]=subscObj.writePriceType[0]}}
+                </div>
+                <v-select
+                  v-model="subscObj.addPriceTypeArry[addItemNum-1]"
+                  :items="subscObj.writePriceType"
+                  label="金額の記入方式"
+                  chips
+                >
+                </v-select>
+              </v-col>
+            </v-row>
+            <v-row>
+              <v-col>
+                <v-text-field
+                  v-model="subscObj.addNameArry[addItemNum-1]"
+                  label="品名"
+                  :rules="[validateRules.required]"
+                ></v-text-field>
+              </v-col>
+
+              <v-col>
+                <v-text-field
+                  v-model="subscObj.addPriceArry[addItemNum-1]"
+                  :label="'金額'"
+                  :rules="[validateRules.required,validateRules.number]"
+                >
+                </v-text-field>
+              </v-col>
+
+              <v-col>
+                <v-text-field
+                  v-model="subscObj.addNumArry[addItemNum-1]"
+                  :label="'購入数'"
+                  :rules="[validateRules.required,validateRules.number,validateRules.exceptZero]"
+                >
+                </v-text-field>
+              </v-col>
+            </v-row>
+
+            <v-divider></v-divider>
+          </v-card>
+          <div class="mt-5"></div>
+
+          <v-card
+            v-for="otherItemNum in subscObj.otherItemNum"
+            :key="'other-'+otherItemNum"
+          >
+            <v-row>
+              <v-col class="select-subscribe-title"
+                >{{subscObj.listOtherName}}
+              </v-col>
+              <v-col>
+                <div style="display: none">
+                  {{subscObj.otherPriceTypeArry[otherItemNum-1]?null:subscObj.otherPriceTypeArry[otherItemNum-1]=subscObj.writePriceType[0]}}
+                </div>
+                <v-select
+                  v-model="subscObj.otherPriceTypeArry[otherItemNum-1]"
+                  :items="subscObj.writePriceType"
+                  label="金額の記入方式"
+                  chips
+                >
+                </v-select>
+              </v-col>
+            </v-row>
+            <v-row>
+              <v-col>
+                <v-text-field
+                  v-model="subscObj.otherNameArry[otherItemNum-1]"
+                  label="品名"
+                  :rules="[validateRules.required]"
+                ></v-text-field>
+              </v-col>
+
+              <v-col>
+                <v-text-field
+                  v-model="subscObj.otherPriceArry[otherItemNum-1]"
+                  :label="'金額'"
+                  :rules="[validateRules.required,validateRules.number]"
+                >
+                </v-text-field>
+              </v-col>
+
+              <v-col>
+                <v-text-field
+                  v-model="subscObj.otherNumArry[otherItemNum-1]"
+                  :label="'購入数'"
+                  :rules="[validateRules.required,validateRules.number,validateRules.exceptZero]"
+                >
+                </v-text-field>
+              </v-col>
+            </v-row>
+
+            <v-divider></v-divider>
+          </v-card>
+
+          <div class="mt-5"></div>
+          <v-textarea
+            v-model="subscObj.memo"
+            label="メモ"
+            hint="この決済に対してメモを残します。"
+            outlined
+            rows="2"
+          >
+          </v-textarea>
+
+          <!-- <input
+                  style="display: none"
+                  ref="input"
+                  type="file"
+                  accept="image/jpeg, image/jpg, image/png"
+                  @change="selectedFile()"
+                />
+                <v-btn color="primary" @click="fileInputBtnclick"
+                  >select image</v-btn
+                > -->
+          <v-text-field
+            v-model="subscObj.uploadFile"
+            :rules="[validateRules.required]"
+            style="display: none"
+          >
+          </v-text-field>
+
+          <p class="photo-upload-title">レシート画像をアップロード(*MUST)</p>
+          <div class="photo-upload-container">
+            <!-- <v-btn
+                  tile
+                  color="success"
+                  @click="subscObj.isCapture=!subscObj.isCaptur"
+                >
+                  <v-icon left> mdi-pencil </v-icon>
+                  Edit
+                </v-btn> -->
+            <img-inputer
+              v-model="subscObj.uploadFile"
+              theme="light"
+              size="large"
+              placeholder="ファイルをドロップするかここをクリックしてください"
+              bottom-text="ファイルをドロップするかここをクリックしてください"
+            />
+          </div>
+          <!-- </v-col> -->
+          <!-- </v-row> -->
+          <!-- <v-row class="submit-container"> -->
+          <div class="mt-5"></div>
+          <div class="submit-container">
+            <v-btn @click="submitSubscribe" rounded color="success" block
+              >送信</v-btn
+            >
+          </div>
+
+          <!-- </v-row>
+        </v-container> -->
+        </v-container>
+      </v-form>
+    </v-card>
+  </v-app>
+</div>

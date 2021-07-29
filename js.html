@@ -4,12 +4,22 @@
 <script src="https://unpkg.com/vue-router/dist/vue-router.js"></script>
 <script src="https://unpkg.com/vuex"></script>
 <script src="https://cdn.jsdelivr.net/npm/es6-promise@4/dist/es6-promise.auto.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/sass.js/0.9.12/sass.sync.min.js"></script>
+<!-- vue component -->
+
+<!-- vue-img-inputer https://www.kabanoki.net/6250/ -->
+<link
+  rel="stylesheet"
+  href="https://cdn.jsdelivr.net/npm/vue-img-inputer@2.1.6/dist/index.css"
+/>
+<script src="https://cdn.jsdelivr.net/npm/vue-img-inputer@2.1.6/dist/index.js"></script>
 
 <script>
-  google.script.run.withSuccessHandler(initializeVue).getSpreadsheetName();
-  let global = {
-    gas: "",
-  };
+  // google.script.run.withSuccessHandler(initializeVue).getSpreadsheetName();
+
+  initGlobal();
+  initializeVue();
+
   var page1 = "<div>ページ１を表示</div>";
   var page2 = "<div>ページ２を表示</div>";
   var home = "<div>home</div>";
@@ -17,10 +27,23 @@
   var about = "<div>about</div>";
   var login = "<div>login</div>";
   var test = "<div>test</div>";
-  function initGlobalData(data) {
-    global.gas = JSON.parse(data);
+  function initGlobal() {
+    //sass init
+    Sass.compile(
+      document.querySelector("style[type=scss]").innerHTML,
+      function (res) {
+        var s = document.createElement("style");
+        s.innerHTML = res.text;
+        res.formatted && console.error(res.formatted); //if error console.error it.
+        res.text && document.head.appendChild(s); // append style element only if no error.
+      }
+    );
+
+    //vue-img-inputer init
+    const ImgInputer = window["vueImgInputer"];
+    Vue.component("img-inputer", ImgInputer);
   }
-  function initializeVue(ssName) {
+  async function initializeVue() {
     new Vue({
       el: "#app",
       vuetify: new Vuetify(),
@@ -73,23 +96,150 @@
         ],
       }),
       store: new Vuex.Store({
-        state: {
-          count: 0,
-          user: "",
-        },
-        mutations: {
-          increment(state) {
-            state.count++;
+        modules: {
+          snackbarState: {
+            namespaced: true,
+            state: () => ({
+              isSnackbar: false,
+              message: "tes",
+              timeout: 3000,
+            }),
+            getters: {
+              getSnackbarObj(state) {
+                let obj = {
+                  isSnackbar: state.isSnackbar,
+                  message: state.message,
+                  timeout: state.timeout,
+                };
+                return obj;
+              },
+              getIsSnackbar(state) {
+                return state.isSnackbar;
+              },
+              getMessage(state) {
+                return state.message;
+              },
+            },
+            mutations: {},
+            actions: {
+              //APIs
+              fire({ state, dispatch }, { message, timeout }) {
+                message ? dispatch("setMessage", message) : null;
+                timeout ? (state.timeout = timeout) : null;
+                dispatch("setIsSnackbar", true);
+              },
+              //setter
+              setIsSnackbar({ state }, bool) {
+                state.isSnackbar = bool;
+              },
+              setMessage({ state }, msg) {
+                state.message = msg;
+              },
+            },
           },
-          user: (state, payload) => (state.user = payload),
         },
       }),
       data: {
-        ssName: ssName,
+        deviceready: false,
+        queryObj: {}, //自動挿入
+        userObj: { userId: "Guest", name: "Guest" }, //自動挿入
+        memberObj: {
+          memberList: [], //自動挿入
+          subscribeMemberList: [], //自動挿入
+        },
+        paymentObj: {
+          TYPE: {
+            SUBSCRIBE: "SUBSCRIBE",
+            ERROR: "ERROR",
+          },
+          requestUserIdArry: [], //請求するユーザーIDリスト
+        },
+        subscObj: {
+          refName: "subscribe_form",
+          database: {}, //自動挿入
+          list: ["A", "B", "C", "その他", "追加"],
+          writePriceType: ["１個当たりの値段", "合計金額"],
+          ATTRIBUTE_LIST: {
+            LISTED: "LISTED",
+            ADD: "ADD",
+            OTHER: "OTHER",
+            ERROR: "ERROR",
+          },
+
+          //リスト情報
+          selectItemArry: [], //selectItem_i
+          selectItemPriceArry: [], //selectItem_i
+          selectItemNumArry: [], //selectItem_i
+          selectPriceTypeArry: [], //selectItem_i
+
+          //追加情報
+          listAddName: "[追加]",
+          addItemNum: 0,
+          addNameArry: [], //add_i
+          addPriceArry: [], //add_i
+          addNumArry: [], //add_i
+          addPriceTypeArry: [], //add_i
+
+          //その他情報
+          listOtherName: "[その他]",
+          otherItemNum: 0,
+          otherNameArry: [], //other_i
+          otherPriceArry: [], //other_i
+          otherNumArry: [], //other_i
+          otherPriceTypeArry: [], //other_i
+
+          memo: "", //投稿に対しての備考
+          uploadFile: "",
+        },
+        validateRules: {
+          required: (value) => !!value || "必ず入力してください", // 入力必須の制約
+          number: (value) => !isNaN(Number(value)) || "数値を入力してください", // 入力必須の制約
+          exceptZero: (value) => !(value == 0) || "0は入力できません。", // 入力必須の制約
+        },
+        loadingObj: {
+          isLoading: false,
+          message: "Loading...",
+        },
+        helper: {},
+        submitObj: {
+          template: {
+            createAt: "",
+            deleteAt: "",
+            updateAt: "",
+            submitType: "DEFAULT",
+            attribute: null,
+            buyUserId: null,
+            buyUserName: null,
+            requestUserIdArry: [],
+            name: null,
+            num: null,
+            price: null,
+            sumPrice: null,
+            memo: null,
+            imageName: null,
+          },
+          TYPE: {
+            SUBSCRIBE: "SUBSCRIBE", //サブスク
+            BUY: "BUY", //購入
+            REQUEST: "REQUEST", //請求
+            PAYMENT: "PAYMENT", //返金
+            NOTICE: "NOTICE", //通知
+            ERROR: "ERROR", //エラー
+          },
+        },
         leftMiniVariant: false,
         leftDrawer: false,
         rightDrawer: false,
         selectedItem: 1,
+        userDataArryKey: [
+          "createAt",
+          "deleteAt",
+          "name",
+          "userId",
+          "status",
+          "iconUrl",
+          "ZZZ",
+        ],
         leftDrowerList: [
           {
             id: 0,
@@ -147,23 +297,493 @@
             goto: "test",
             isShow: true,
           },
+          {
+            id: 8,
+            text: "テスト2",
+            icon: "mdi-flag",
+            goto: "test",
+            isShow: true,
+          },
         ],
       },
+      created() {
+        this.initQueryData(queryData);
+        // this.getUserNameById(this.userObj.userId);
+        this.initUserObj(this.queryObj.userId);
+        this.initSubscribeList();
+        console.log(this.subscObj);
+      },
+      mounted() {
+        window.setTimeout(() => {
+          this.initDeviceready();
+        }, 1000);
+      },
+      computed: {
+        isSnackbar: {
+          get() {
+            return this.$store.getters["snackbarState/getIsSnackbar"];
+          },
+          set(bool) {
+            this.$store.dispatch("snackbarState/setIsSnackbar", bool);
+          },
+        },
+        snackbarObj: {
+          get() {
+            return this.$store.getters["snackbarState/getSnackbarObj"];
+          },
+          // set(val) {
+          //   this.$store.dispatch("snackbarState/setMessage", val);
+          // },
+        },
+      },
       methods: {
-        test2(item) {
-          console.log("2", global);
+        //init
+        init() {},
+        initQueryData(queryData) {
+          let keys = Object.keys(queryData);
+          keys.forEach((key) => {
+            this.queryObj[key] = queryData[key];
+            // switch (key) {
+            //   case "userId": {
+            //     this.userObj.userId = queryData[key];
+            //     break;
+            //   }
+            // }
+          });
         },
-        changeMessage: function () {
-          this.ssName = "Hello JavaScript!";
+        getUserNameById(userId) {
+          let getData = (name) => {
+            this.userObj["id"] = userId;
+            this.userObj["name"] = name;
+          };
+          google.script.run.withSuccessHandler(getData).getUserName(userId);
         },
+        initUserObj(userId) {
+          let userObj = { userId: "Guest", name: "Guest" };
+          if (userId) {
+            let getData = (userDataArry) => {
+              userDataArry = JSON.parse(userDataArry);
+              // console.log('userDataArry',userDataArry)
+
+              this.userDataArryKey.forEach((key, i) => {
+                userObj[key] = userDataArry[i];
+              });
+            };
+            google.script.run.withSuccessHandler(getData).getUserData(userId);
+          }
+          this.userObj = userObj;
+        },
+        initSubscribeList() {
+          let getData = (dataForClientObj) => {
+            let { sheetName, dataLabelArry, sheetDataArry } = dataForClientObj;
+            this.subscObj.database = sheetDataArry;
+            this.subscObj.list = sheetDataArry.map((v) => {
+              return v[0];
+            });
+            // this.subscObj.database = subscListArry;
+            // if (subscListArry.length > 1) {
+            //   this.subscObj.list = subscListArry
+            //     .filter((v, i) => {
+            //       return i !== 0;
+            //     })
+            //     .map((v) => {
+            //       return v[0];
+            //     });
+            //   // this.subscObj.list.push(this.subscObj.listAddName);
+            //   // this.subscObj.list.push(this.subscObj.listOtherName);
+            // }
+          };
+          google.script.run.withSuccessHandler(getData).getSubscribeList();
+        },
+        initDeviceready() {
+          this.deviceready = true;
+          let tes = window.document.getElementById("app");
+          tes.style.display = "block";
+          console.log(tes, this);
+        },
+
+        ///////////////////
+        //html call
+        //////////////////
         findDisplayPageById(id) {
           return this.leftDrowerList.find((list) => {
             return list.id === id;
           });
         },
         isShowDisplayById(id) {
-          console.log(this.findDisplayPageById(id).isShow);
+          // console.log(this.findDisplayPageById(id).isShow);
           return this.findDisplayPageById(id).isShow;
+        },
+
+        ///////////////////
+        //helper
+        //////////////////
+        test2(item) {
+          // console.log("2", this.queryObj);
+          // console.log("2", this.userObj);
+          // let tes = this.checkFormValidate(this.subscObj.refName);
+          this.$store.dispatch("snackbarState/fire", { message: "fireee" });
+          // this.loadingHandler({ isLoading: true, message: "lo-----" });
+          // window.setTimeout(() => {
+          //   this.loadingHandler({ isLoading: false });
+          // }, 3000);
+          console.log(this.userObj, this.queryObj);
+          // console.log(tes);
+          // console.log(this.subscObj);
+          // console.log(this.subscObj.uploadFile);
+        },
+
+        snackFire({ message, timeout }) {
+          this.$store.dispatch("snackbarState/fire", {
+            message: message,
+            timeout: timeout ? timeout : null,
+          });
+        },
+        loadingHandler({ isLoading, message }) {
+          let timeout = 10000;
+          this.loadingObj.isLoading = isLoading;
+          if (message) {
+            this.loadingObj.message = message;
+          } else this.loadingObj.message = null;
+
+          if (isLoading) {
+            window.setTimeout(() => {
+              if (this.loadingObj.isLoading) {
+                this.loadingObj.isLoading = false;
+                this.snackFire({ message: "timeout error" });
+              }
+            }, timeout);
+          }
+        },
+
+        formatDate(date, timeZone, format) {
+          if (!format) var format = "yyyy/MM/dd HH:mm";
+          format = format.replace(/yyyy/g, date.getFullYear());
+          format = format.replace(
+            /MM/g,
+            ("0" + (date.getMonth() + 1)).slice(-2)
+          );
+          format = format.replace(/dd/g, ("0" + date.getDate()).slice(-2));
+          format = format.replace(/HH/g, ("0" + date.getHours()).slice(-2));
+          format = format.replace(/mm/g, ("0" + date.getMinutes()).slice(-2));
+          format = format.replace(/ss/g, ("0" + date.getSeconds()).slice(-2));
+          format = format.replace(
+            /SSS/g,
+            ("00" + date.getMilliseconds()).slice(-3)
+          );
+          return format;
+        },
+
+        _cp(obj) {
+          /**
+           * @param {Object,Array} obj ディープコピー
+           * undefinedの場合もコピーできるように対応
+           */
+          if (Array.isArray(obj)) {
+            let includeFunction = obj.find((item) => {
+              return typeof item === "function";
+            });
+            if (includeFunction) {
+              console.error("関数型の配列はコピーできません。");
+              return false;
+            } else {
+              const currentState = window.history.state;
+              window.history.replaceState(obj, null);
+
+              const clone = window.history.state;
+              window.history.replaceState(currentState, null);
+              return clone;
+            }
+          } else {
+            let keys = Object.keys(obj);
+            let includeFunction = keys.find((key) => {
+              return typeof obj[key] === "function";
+            });
+
+            if (includeFunction) {
+              console.error("関数型のオブジェクトはコピーできません。");
+              return false;
+            } else {
+              const currentState = window.history.state;
+              window.history.replaceState(obj, null);
+
+              const clone = window.history.state;
+              window.history.replaceState(currentState, null);
+              return clone;
+            }
+          }
+        },
+        ///////////////////
+        //subscribe
+        //////////////////
+        fileInputBtnclick() {
+          this.$refs.input.click();
+        },
+        async selectedFile() {
+          this.helper.isLoading = true;
+
+          const file = this.$refs.input.files[0];
+          if (!file) {
+            return;
+          }
+        },
+
+        submitSubscribe() {
+          let isValidate = this.checkFormValidate(this.subscObj.refName);
+          let formatSubmitObj_subscribe = () => {
+            //initer
+            let {
+              ATTRIBUTE_LIST,
+              //listed
+              selectItemArry,
+              selectItemPriceArry,
+              selectItemNumArry,
+              selectPriceTypeArry,
+
+              //追加情報
+              addNameArry,
+              addPriceArry,
+              addNumArry,
+              addPriceTypeArry,
+
+              //その他情報
+              otherNameArry,
+              otherPriceArry,
+              otherNumArry,
+              otherPriceTypeArry,
+
+              memo,
+              uploadFile,
+            } = this.subscObj;
+            let date = new Date();
+            let dateUNIX = date.getTime();
+            let imageName = this.formatDate(
+              date,
+              "JST",
+              "yyyy_MM_dd_HHhmmminsssec"
+            );
+            let priceArry = selectItemPriceArry.map((price, price_i) => {
+              if (
+                selectPriceTypeArry[price_i] === this.subscObj.writePriceType[0]
+              ) {
+                //１個当たりの値段
+                return price;
+              } else if (
+                selectPriceTypeArry[price_i] === this.subscObj.writePriceType[1]
+              ) {
+                //合計金額
+                return price / selectItemNumArry[price_i];
+              } else {
+                console.error("selectPriceTypeArry does not exist type.");
+                return price;
+              }
+            });
+            let priceArry_add = addPriceArry.map((price, price_i) => {
+              if (
+                addPriceTypeArry[price_i] === this.subscObj.writePriceType[0]
+              ) {
+                //１個当たりの値段
+                return price;
+              } else if (
+                addPriceTypeArry[price_i] === this.subscObj.writePriceType[1]
+              ) {
+                //合計金額
+                return price / addNumArry[price_i];
+              } else {
+                console.error("addPriceTypeArry does not exist type.");
+                return price;
+              }
+            });
+            let priceArry_other = otherPriceArry.map((price, price_i) => {
+              if (
+                otherPriceTypeArry[price_i] === this.subscObj.writePriceType[0]
+              ) {
+                //１個当たりの値段
+                return price;
+              } else if (
+                otherPriceTypeArry[price_i] === this.subscObj.writePriceType[1]
+              ) {
+                //合計金額
+                return price / otherNumArry[price_i];
+              } else {
+                console.error("otherPriceTypeArry does not exist type.");
+                return price;
+              }
+            });
+
+            //inputer
+
+            //itemArry=[date,attribute,name,price,num,memo,imageName]
+            let itemArry = selectItemArry.map((selectItem, select_i) => {
+              // let resItem = [
+              //   date,
+              //   ATTRIBUTE_LIST.LISTED,
+              //   selectItem,
+              //   priceArry[select_i],
+              //   selectItemNumArry[select_i],
+              //   memo,
+              //   imageName,
+              // ];
+              let resItem = {
+                createAt: dateUNIX,
+                submitType: this.submitObj.TYPE.SUBSCRIBE,
+                attribute: ATTRIBUTE_LIST.LISTED,
+                buyUserId: this.userObj.userId,
+                buyUserName: this.userObj.name,
+                requestUserIdArry: [this.paymentObj.TYPE.SUBSCRIBE],
+                name: selectItem,
+                price: priceArry[select_i],
+                sumPrice:
+                  Number(priceArry[select_i]) *
+                  Number(selectItemNumArry[select_i]),
+                num: selectItemNumArry[select_i],
+                memo: memo,
+                imageName: imageName,
+              };
+
+              return this.formatSubmitObjtoArry(resItem);
+            });
+            let itemArry_add = addNameArry.map((selectItem, select_i) => {
+              // let resItem = [
+              //   date,
+              //   ATTRIBUTE_LIST.ADD,
+              //   selectItem,
+              //   priceArry_add[select_i],
+              //   addNumArry[select_i],
+              //   memo,
+              //   imageName,
+              // ];
+              // let resItem = {
+              //   date: dateUNIX,
+              //   attribute: ATTRIBUTE_LIST.ADD,
+              //   name: selectItem,
+              //   price: priceArry_add[select_i],
+              //   num: addNumArry[select_i],
+              //   memo: memo,
+              //   imageName: imageName,
+              // };
+              let resItem = {
+                createAt: dateUNIX,
+                submitType: this.submitObj.TYPE.SUBSCRIBE,
+                attribute: ATTRIBUTE_LIST.ADD,
+                buyUserId: this.userObj.userId,
+                buyUserName: this.userObj.name,
+                requestUserIdArry: [this.paymentObj.TYPE.SUBSCRIBE],
+                date: dateUNIX,
+                name: selectItem,
+                price: priceArry_add[select_i],
+                sumPrice:
+                  Number(priceArry_add[select_i]) *
+                  Number(addNumArry[select_i]),
+                num: addNumArry[select_i],
+                memo: memo,
+                imageName: imageName,
+              };
+
+              return this.formatSubmitObjtoArry(resItem);
+            });
+
+            let itemArry_other = otherNameArry.map((selectItem, select_i) => {
+              // let resItem = [
+              //   date,
+              //   ATTRIBUTE_LIST.OTHER,
+              //   selectItem,
+              //   priceArry_other[select_i],
+              //   otherNumArry[select_i],
+              //   memo,
+              //   imageName,
+              // ];
+              // let resItem = {
+              //   date: dateUNIX,
+              //   attribute: ATTRIBUTE_LIST.OTHER,
+              //   name: selectItem,
+              //   price: priceArry_other[select_i],
+              //   num: otherNumArry[select_i],
+              //   memo: memo,
+              //   imageName: imageName,
+              // };
+              let resItem = {
+                createAt: dateUNIX,
+                submitType: this.submitObj.TYPE.SUBSCRIBE,
+                attribute: ATTRIBUTE_LIST.OTHER,
+                buyUserId: this.userObj.userId,
+                buyUserName: this.userObj.name,
+                requestUserIdArry: [this.paymentObj.TYPE.SUBSCRIBE],
+
+                date: dateUNIX,
+                name: selectItem,
+                price: priceArry_other[select_i],
+                sumPrice:
+                  Number(priceArry_other[select_i]) *
+                  Number(otherNumArry[select_i]),
+                num: otherNumArry[select_i],
+                memo: memo,
+                imageName: imageName,
+              };
+
+              return this.formatSubmitObjtoArry(resItem);
+            });
+
+            let formattedArry = itemArry
+              .concat(itemArry_add)
+              .concat(itemArry_other);
+
+            return formattedArry;
+          };
+
+          if (isValidate) {
+            this.loadingHandler({ isLoading: true, message: "送信中..." });
+
+            let formatObj = formatSubmitObj_subscribe();
+            console.log(formatObj);
+            let success = () => {
+              this.loadingHandler({ isLoading: false });
+              this.snackFire({ message: "送信しました。" });
+            };
+            google.script.run
+              .withSuccessHandler(success)
+              .getPost_subscribe(formatObj[0]);
+          } else {
+            this.snackFire({
+              message: "必要な情報を入力してください。",
+            });
+          }
+        },
+
+        ///////////////////
+        //form
+        //////////////////
+        formatSubmitObjtoArry(obj) {
+          // let template = {
+          //   createAt,
+          //   deleteAt,
+          //   updateAt,
+          //   attribute,
+          //   buyUserId,
+          //   requestUserIdArry,
+          //   name,
+          //   num,
+          //   price,
+          //   sumPrice,
+          //   memo,
+          //   imageName,
+          // };
+          let template = this._cp(this.submitObj.template);
+          let keyArry = Object.keys(template);
+          keyArry.forEach((key) => {
+            if (!obj[key]) obj[key] = template[key];
+          });
+          let resArry = keyArry.map((key) => {
+            if (typeof obj[key] !== "string") return String(obj[key]);
+            return obj[key];
+          });
+
+          return resArry;
+        },
+        checkFormValidate(refName) {
+          //v-formを用いた場合はこれでvalidateをチェックする
+          //https://qiita.com/tekunikaruza_jp/items/0a68d86084d961d632ac
+          return this.$refs[refName].validate();
         },
       },
     });
