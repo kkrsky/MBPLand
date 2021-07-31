@@ -43,12 +43,10 @@
   </head>
   <body>
     <!-- ここにbodyを記述していく -->
-    <!-- <div id="splash"></div> -->
-    <div id="app">
-      <!-- <div id="app" style="display: none"> -->
+    <div id="splash"></div>
+    <div id="app" style="display: none">
       <!-- <v-app v-show="!deviceready"> 読み込み中 </v-app> -->
-      <v-app>
-        <!-- <v-app v-show="deviceready"> -->
+      <v-app v-show="deviceready">
         <!-- <v-app> -->
         <!-- loading -->
         <v-container id="LoadingContainer" v-show="loadingObj.isLoading">

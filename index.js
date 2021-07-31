@@ -1,20 +1,19 @@
 //from https://qiita.com/tetrapod117/items/e7b48485c98f6b88f311
 
 //https://qiita.com/guchimina/items/aa36e27875ae26876d2c
-//notify token qt1zpVt3A9PtZq1Bc4snbcodeiwESjUDesjLIMUVYpE
-//notify test token t9OwHlNu8LjLtR66rEX3uwmwlGMhKD9Bx2g0mPnKhMm
+//NOTIFY_TOKEN getPrivate('NOTIFY_TOKEN')
+//NOTIFY_TOKEN_TEST getPrivate('NOTIFY_TOKEN_TEST')
 //最新のGASとJS　https://qiita.com/jooji/items/71ac0f514d247cafb648
 //最新のGASとJS2 https://officeforest.org/wp/2020/02/06/google-apps-script%E3%81%AEv8-runtime%E5%AF%BE%E5%BF%9C%E3%82%92%E6%A4%9C%E8%A8%BC%E3%81%97%E3%81%A6%E3%81%BF%E3%81%9F/
 //LINE Developersで取得したアクセストークンを入れる
-var CHANNEL_ACCESS_TOKEN =
-  "ArC3NlizZzY3hKvXqthvtB9F3iuVG0ajeW5M0Czc3BnVGvVA8vjP5q9sKAU6CwHPSltjfj2yk8GbZD7k1ctmJGGIKI8DLxIZYkVdsMXMuyDe985pAygzDV7njPdIE5gWUwtP7sqMJqGjIZuH0Oh6EwdB04t89/1O/w1cDnyilFU=";
+var CHANNEL_ACCESS_TOKEN = getPrivate("CHANNEL_ACCESS_TOKEN");
 var line_endpoint = "https://api.line.me/v2/bot/message/reply";
 let LINE_ENDPOINT_PROFILE = "https://api.line.me/v2/bot/profile";
 let LINE_ENDPOINT_DATA = "https://api-data.line.me/v2/bot/message"; //GET https://api-data.line.me/v2/bot/message/{messageId}/content
-var MASTER_SPREAD_SHEET_ID = "1u6SgXL18BRPL8r3_QlAjavL-SR7Z2SuT-LP0LCangZk";
-var LOG_FILE_ID = "1Iv4joIuTQaSv2PAneRomPAoBFb_5Eg1D1q7Wl1q-z5Y"; // デバッグログを出力するドキュメント
+var MASTER_SPREAD_SHEET_ID = getPrivate("MASTER_SPREAD_SHEET_ID");
+var LOG_FILE_ID = getPrivate("LOG_FILE_ID"); // デバッグログを出力するドキュメント
 let FOLDER_ID_PHOTO_TEST = "1j4rXQgx037F2MlFfg1lSK0nJlTgZQYOZ";
-let FOLDER_ID_PHOTO_RECIPT = "1xsQyeyBK5sd6Fooxdwy4kAwFgrQIB0Kn";
+let FOLDER_ID_PHOTO_RECIPT = getPrivate("FOLDER_ID_PHOTO_RECIPT");
 // let FOLDER_ID_PHOTO_TEST = "1OKFxmvUKYemPtE0UolWHHIJyzRIgjG9M";
 var spreadSheet = SpreadsheetApp.openById(MASTER_SPREAD_SHEET_ID);
 // var sheet_user = spreadSheet.getSheetByName("user");
@@ -271,6 +270,11 @@ function testToLine() {
   let message = "this is test";
   SendToLine(message);
 }
+
+//private key
+function getPrivate(key) {
+  return PropertiesService.getScriptProperties().getProperty(key);
+}
 //spreadsheetからデータを取得
 function GoogleFormToLine() {
   var sheetId = "1u6SgXL18BRPL8r3_QlAjavL-SR7Z2SuT-LP0LCangZk";
@@ -295,8 +299,8 @@ function GoogleFormToLine() {
 //LINEに通知
 function SendToLine(message) {
   //ファイル→プロジェクトのプロパティ→スプリクトのプロパティからLINE_TOKENを設定しておく
-  var token =
-    PropertiesService.getScriptProperties().getProperty("LINE_TOKEN_TEST");
+  var token = getPrivate("LINE_TOKEN_TEST");
+  // PropertiesService.getScriptProperties().getProperty("LINE_TOKEN_TEST");
   var op = {
     method: "post",
     "Content-Type": "application/x-www-form-urlencoded",
