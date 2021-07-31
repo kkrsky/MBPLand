@@ -17,20 +17,10 @@ let FOLDER_ID_PHOTO_TEST = "1j4rXQgx037F2MlFfg1lSK0nJlTgZQYOZ";
 let FOLDER_ID_PHOTO_RECIPT = "1xsQyeyBK5sd6Fooxdwy4kAwFgrQIB0Kn";
 // let FOLDER_ID_PHOTO_TEST = "1OKFxmvUKYemPtE0UolWHHIJyzRIgjG9M";
 var spreadSheet = SpreadsheetApp.openById(MASTER_SPREAD_SHEET_ID);
-var sheet_user = spreadSheet.getSheetByName("user");
+// var sheet_user = spreadSheet.getSheetByName("user");
 // var sheet_subscribe = spreadSheet.getSheetByName("subscribe");
 // var sheet_dealForm = spreadSheet.getSheetByName("deal_form");
-let userArryMap = {
-  createAt: 0,
-  deleteAt: 1,
-  name: 2,
-  userId: 3,
-  status: 4, //Guest,Menber
-  iconUrl: 5,
-  ZZZ: 6,
-};
-// let uerArryMaxRowLength = 7;
-let uerArryMaxRowLength = Object.keys(userArryMap).length;
+
 let templateIconId = "1lM0CcoR__FzewvQ6kuH-mrksZRuSsOoG";
 let templateIconUrl = getFileUrl(templateIconId);
 // Utilities.sleep(1000);
@@ -53,11 +43,13 @@ class DoSheet {
   get some() {
     return this.sheetId;
   }
+
   get getDataForClient() {
     let obj = {
       sheetName: this.sheetName,
       dataLabelArry: this.dataLabelArry,
       sheetDataArry: this.sheetDataArry,
+      // sheetDataArry: this.getSheetDataArry(),
     };
     return obj;
   }
@@ -84,18 +76,29 @@ class DoSheet {
   //action
   getSheetDataArry() {
     let lastRow = this.sheet.getLastRow();
+    let sheetDataArry = [];
     if (lastRow === 0) {
-      return this.initSheet();
+      //白紙
+      this.initSheet();
+      this.sheetDataArry = sheetDataArry;
+    } else if (lastRow === 1) {
+      //データラベルのみ
+      this.sheetDataArry = sheetDataArry;
+    } else {
+      let lastCol = this.sheet.getLastColumn();
+      sheetDataArry = this.sheet
+        .getRange(2, 1, lastRow - 1, lastCol)
+        .getValues();
+      this.sheetDataArry = sheetDataArry;
     }
-    let lastCol = this.sheet.getLastColumn();
-    let sheetDataArry = this.sheet
-      .getRange(2, 1, lastRow - 1, lastCol)
-      .getValues();
-    this.sheetDataArry = sheetDataArry;
+    // debug("sheetDataArry", sheetDataArry);
     return sheetDataArry;
   }
-  filtered({ key, filterItem }) {
+  filtered({ key, filterItem, isOneItem, toLabelObj, isExist }) {
     //sheetDataArryを調整
+    //isOneItem: 一次元配列で１つのデータのみを返す。(findメソッドライク)
+    //toLabelObj: labelをkeyとしてオブジェクトを返す。
+    //isExist: filterしたアイテムが見つからなかった場合はfalseを返す。
     //find key index
     let keyIndex = 0;
     let filteredArry = [];
@@ -109,7 +112,8 @@ class DoSheet {
             " in dataLabelArry=" +
             this.dataLabelArry
         );
-        return this.sheetDataArry;
+        if (isExist) return false;
+        return [];
       }
     }
 
@@ -119,8 +123,38 @@ class DoSheet {
       return filterItem(this.sheetDataArry);
     } else if (Array.isArray(filterItem)) {
       //複数フィルター
+
+      //そのうち実装
+      if (isExist) return false;
+      return [];
     } else {
-      filteredArry = this.sheetDataArry.filter();
+      filteredArry = this.sheetDataArry.filter((sheetData) => {
+        return sheetData[keyIndex] === filterItem;
+      });
+
+      if (isExist) {
+        if (filteredArry.length === 0) return false;
+      }
+
+      //toLabelObj
+      if (toLabelObj) {
+        // debug("filteredArry", filteredArry);
+        if (filteredArry.length === 0) return {};
+        filteredArry = filteredArry.map((dataArr, data_i) => {
+          let row = dataArr[0] + 1;
+          let obj = {};
+          obj.index = {};
+          this.dataLabelArry.forEach((key, key_i) => {
+            let col = key_i + 1;
+            obj[key] = dataArr[key_i];
+            obj.index[key] = { row, col };
+          });
+          return obj;
+        });
+      }
+      //isOneItem
+      if (isOneItem && filteredArry.length > 0) filteredArry = filteredArry[0];
+
       return filteredArry;
     }
   }
@@ -129,8 +163,13 @@ class DoSheet {
     if (Array.isArray(arr)) {
       if (isIncrement) {
         let sheetDataArry = this.getSheetDataArry();
-        let lastId = sheetDataArry.pop()[0];
-        arr.unshift(lastId + 1);
+        if (sheetDataArry.length > 1) {
+          let lastId = sheetDataArry.pop()[0];
+          arr.unshift(lastId + 1);
+        } else {
+          //id=1のデータがない
+          arr.unshift(1);
+        }
       }
       let lastCol = this.dataLabelArry.length;
       if (arr.length > lastCol || arr.length < lastCol) {
@@ -173,6 +212,11 @@ class DoSheet {
       debug("error:appendRow item is not array or object");
     }
   }
+  setValue({ sRow, sCol, numRow, numCol, value }) {
+    if (!numRow) numRow = 1;
+    if (!numCol) numCol = 1;
+    this.sheet.getRange(sRow, sCol, numRow, numCol).setValue(value);
+  }
 }
 let sheet_test = new DoSheet({
   sheetId: MASTER_SPREAD_SHEET_ID,
@@ -188,7 +232,7 @@ let sheet_dealForm = new DoSheet({
   sheetId: MASTER_SPREAD_SHEET_ID,
   sheetName: "deal_form",
   dataLabelArry: [
-    "deal_id",
+    "id",
     "createAt",
     "deleteAt",
     "updateAt",
@@ -204,6 +248,21 @@ let sheet_dealForm = new DoSheet({
     "memo",
     "imageName",
     "imageUrl",
+  ],
+});
+
+let sheet_user = new DoSheet({
+  sheetId: MASTER_SPREAD_SHEET_ID,
+  sheetName: "user",
+  dataLabelArry: [
+    "id",
+    "createAt",
+    "deleteAt",
+    "name",
+    "userId",
+    "Status",
+    "Icon",
+    "undef",
   ],
 });
 
@@ -469,55 +528,23 @@ function createUrlQuery(obj, url) {
  * クライアント側からの呼び出し
  *
  */
-function getSheetUserData() {
-  var lastRow_user = sheet_user.getLastRow();
-  var userArry = sheet_user
-    .getRange(1, 1, lastRow_user, uerArryMaxRowLength)
-    .getValues();
-  return userArry;
+function getSheetUserList() {
+  return JSON.stringify(sheet_user.getDataForClient);
 }
 function getUserData(userId) {
-  let userArry = getSheetUserData();
-  debug("userId", userId, "userArry", userArry);
-  let userData = userArry.find((row) => {
-    return row[userArryMap.userId] === userId;
+  let userData = sheet_user.filtered({
+    key: "id",
+    filterItem: userId,
+    isOneItem: true,
   });
   debug("userData", userData);
 
-  if (userData) {
+  if (userData && userData.length) {
     return JSON.stringify(userData);
   } else return false;
 }
-function getUserName(userId) {
-  let userArry = getSheetUserData();
-  debug("userId", userId, "userArry", userArry);
-  let userData = userArry.find((row) => {
-    return row[userArryMap.userId] === userId;
-  });
-  if (userData) {
-    return userData[userArryMap.name];
-  } else return "Guest";
-}
 function getSubscribeList() {
-  // let subscribeObj = {};
-  // let keyArry = [];
-  // let arry = [];
-  // subscribeArry.forEach((col, col_i) => {
-  //   col.forEach((rowItem, row_i) => {
-  //     if (col_i === 0) {
-  //       keyArry.push(rowItem);
-  //     } else {
-  //       if (!arry[row_i]) arry[row_i] = [];
-  //       arry[row_i].push(rowItem);
-  //     }
-  //   });
-  // });
-
-  // keyArry.forEach((key, key_i) => {
-  //   subscribeObj[key] = arry[key_i];
-  // });
   return sheet_subscribe.getDataForClient;
-  // return sheet_subscribe.sheetDataArry;
 }
 function getPost_subscribe(postedArry, imageDataObj) {
   debug("posted obj", JSON.stringify(postedArry));
@@ -527,24 +554,12 @@ function getPost_subscribe(postedArry, imageDataObj) {
     arr.push(imageUrl);
     return arr;
   });
-  // let latestData = getSheetDealData({ latest: 1 });
-  // let latestDealId = 0;
-  // if (latestData !== "blink") {
-  //   //タイトルのみまたはシートが白紙
-  //   latestDealId = latestData[0][0];
-  // }
 
-  // debug("b", latestDealId);
-
-  // let appendDealId = latestDealId + 1;
-  // arry.forEach((item, item_i) => {
-  //   item.unshift(appendDealId + item_i);
-  //   sheet_dealForm.appendRow(item);
-  // });
   postedArry.forEach((arr) => {
     sheet_dealForm.appendRow(arr, { isIncrement: true });
   });
 }
+function getMemberList() {}
 
 function getSheetDealData(obj) {
   var dealArry_test = [
@@ -705,66 +720,62 @@ function initSheet(sheetName) {
 }
 async function checkSheetUserData(userId) {
   async function getUserDisplayName(userId) {
-    var res = UrlFetchApp.fetch(LINE_ENDPOINT_PROFILE + "/" + userId, {
-      headers: {
-        "Content-Type": "application/json; charset=UTF-8",
-        Authorization: "Bearer " + CHANNEL_ACCESS_TOKEN,
-      },
-      method: "get",
-    });
-
+    let url = LINE_ENDPOINT_PROFILE + "/" + userId;
+    var res = await getContent(url);
+    console.log("getUserDisplayName", JSON.parse(res));
     return JSON.parse(res).displayName;
   }
-  let userArry = getSheetUserData();
-  let userData_row = 0;
-  let findUser = userArry.find((row, row_i) => {
-    if (row[userArryMap.userId] === userId) {
-      userData_row = row_i + 1;
-      return true;
-    }
+  let userObj = sheet_user.filtered({
+    key: "userId",
+    filterItem: userId,
+    isOneItem: true,
+    toLabelObj: true,
+    isExist: true,
   });
-  debug("findUser checkSheetUserData", findUser);
 
-  if (findUser) {
-    //
+  // debug("checkSheetUserData userObj", userObj);
 
-    if (findUser[userArryMap.deleteAt] !== "") {
+  if (userObj) {
+    //データが存在する
+
+    if (userObj.deleteAt !== "") {
       //削除済ユーザーだった場合は、有効化
-      sheet_user.getRange(userData_row, userArryMap.deleteAt + 1).setValue("");
+      sheet_user.setValue({
+        sRow: userObj.index.deleteAt.row,
+        sCol: userObj.index.deleteAt.col,
+        value: "",
+      });
     }
   } else {
+    //新規登録者
     let today = new Date();
     var userName = await getUserDisplayName(userId);
 
-    sheet_user.appendRow([
-      today,
-      "",
-      userName,
-      userId,
-      "Guest",
-      templateIconUrl,
-      0,
-    ]);
+    sheet_user.appendRow(
+      [today, "", userName, userId, "Guest", templateIconUrl, 0],
+      { isIncrement: true }
+    );
   }
 }
 function deleteUser(userId) {
-  let userArry = getSheetUserData();
-  let userData_row = 0;
-  let findUser = userArry.find((row, row_i) => {
-    if (row[userArryMap.userId] === userId) {
-      userData_row = row_i + 1;
-      return true;
-    }
+  let userObj = sheet_user.filtered({
+    key: "userId",
+    filterItem: userId,
+    isOneItem: true,
+    toLabelObj: true,
+    isExist: true,
   });
-  if (findUser) {
-    //
-    if (findUser[userArryMap.deleteAt] == "") {
-      //未削除ユーザーだった場合は、削除
-      debug("findUser for delete", findUser);
 
-      sheet_user
-        .getRange(userData_row, userArryMap.deleteAt + 1)
-        .setValue(new Date());
+  if (userObj) {
+    //
+    if (userObj.deleteAt == "") {
+      //未削除ユーザーだった場合は、削除
+      debug("delete user", userObj);
+      sheet_user.setValue({
+        sRow: userObj.index.deleteAt.row,
+        sCol: userObj.index.deleteAt.col,
+        value: new Date(),
+      });
     }
   }
 }
@@ -792,12 +803,15 @@ function getImage(imageId, imageName) {
   return img;
 }
 function getContent(url) {
-  return UrlFetchApp.fetch(url, {
-    headers: {
-      "Content-Type": "application/json; charset=UTF-8",
-      Authorization: "Bearer " + CHANNEL_ACCESS_TOKEN,
-    },
-    method: "get",
+  return new Promise((resolve, reject) => {
+    let result = UrlFetchApp.fetch(url, {
+      headers: {
+        "Content-Type": "application/json; charset=UTF-8",
+        Authorization: "Bearer " + CHANNEL_ACCESS_TOKEN,
+      },
+      method: "get",
+    });
+    resolve(result);
   });
 }
 function convertBase64ToBlob(file_base64, fileName) {

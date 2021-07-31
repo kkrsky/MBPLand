@@ -7,6 +7,31 @@
             <v-col> -->
         <v-container>
           <v-select
+            v-model="memberObj.selectMemberObj"
+            :items="memberObj.list"
+            item-text="name"
+            item-value="userId"
+            label="支払った人"
+            chips
+            hint="異なる場合は選択してください。"
+            persistent-hint
+          >
+          </v-select>
+          <v-select
+            v-model="paymentObj.selectPaymentObj"
+            :items="paymentObj.list"
+            item-text="label"
+            item-value="value"
+            label="請求先"
+            chips
+            hint="請求先を選択してください。"
+            persistent-hint
+            readonly
+          >
+          </v-select>
+          <v-divider></v-divider>
+          <div class="mt-5"></div>
+          <v-select
             v-model="subscObj.selectItemArry"
             :items="subscObj.list"
             label="Subscribe List(*MUST)"
@@ -86,7 +111,7 @@
               {{subscObj.addPriceTypeArry[addItemNum-1]?null:subscObj.addPriceTypeArry[addItemNum-1]=subscObj.writePriceType[0]}}
               {{subscObj.addIsShow[addItemNum-1]===false?null:subscObj.addIsShow[addItemNum-1]=true}}
             </div>
-            <v-card>
+            <v-card v-if="subscObj.addIsShow[addItemNum-1]">
               <v-container>
                 <v-row>
                   <v-col class="select-subscribe-title"
@@ -157,7 +182,7 @@
               {{subscObj.otherIsShow[otherItemNum-1]===false?null:subscObj.otherIsShow[otherItemNum-1]=true}}
               <!-- :key="'other-'+otherItemNum" -->
             </div>
-            <v-card v-if="subscObj.otherIsShow[otherItemNum-1]" :key="">
+            <v-card v-if="subscObj.otherIsShow[otherItemNum-1]">
               <v-container>
                 <v-row>
                   <v-col class="select-subscribe-title"
@@ -266,6 +291,10 @@
           <!-- </v-col> -->
           <!-- </v-row> -->
           <!-- <v-row class="submit-container"> -->
+          <div class="mt-5"></div>
+          <div>
+            <p>※{{userObj.name}}さんとして支払いを登録します。</p>
+          </div>
           <div class="mt-5"></div>
           <div class="submit-container">
             <v-btn @click="submitSubscribe" rounded color="success" block

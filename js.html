@@ -43,6 +43,15 @@
     const ImgInputer = window["vueImgInputer"];
     Vue.component("img-inputer", ImgInputer);
   }
+  function gasFunc(method, prop) {
+    return new Promise((resolve, reject) => {
+      google.script.run
+        .withSuccessHandler((result) => resolve(result))
+        .withFailureHandler((error) => resolve(error))
+        [method](prop);
+    });
+  }
+
   class FileReaderEx extends FileReader {
     //https://qiita.com/dojyorin/items/26f1a48085e0bbcf40b7
     constructor() {
@@ -171,10 +180,16 @@
         queryObj: {}, //自動挿入
         userObj: { userId: "Guest", name: "Guest" }, //自動挿入
         memberObj: {
-          memberList: [], //自動挿入
+          list: [
+            { name: "A", userId: 1 },
+            { name: "B", userId: 2 },
+          ], //自動挿入
+          selectMemberObj: [], //代理ログイン用,現在のユーザーが自動挿入
           subscribeMemberList: [], //自動挿入
         },
         paymentObj: {
+          list: [{ label: "SUBSCRIBE", value: "SUBSCRIBE" }],
+          selectPaymentObj: { label: "SUBSCRIBE", value: "SUBSCRIBE" },
           TYPE: {
             SUBSCRIBE: "SUBSCRIBE",
             ERROR: "ERROR",
@@ -232,6 +247,7 @@
         helper: {},
         submitObj: {
           template: {
+            // deal_id:'', //自動挿入される
             createAt: "",
             deleteAt: "",
             updateAt: "",
@@ -244,8 +260,9 @@
             num: null,
             price: null,
             sumPrice: null,
-            memo: null,
+            memo: "",
             imageName: null,
+            // imageUrl:''//自動挿入される
           },
           TYPE: {
             SUBSCRIBE: "SUBSCRIBE", //サブスク
@@ -336,11 +353,7 @@
         ],
       },
       created() {
-        this.initQueryData(queryData);
-        // this.getUserNameById(this.userObj.userId);
-        this.initUserObj(this.queryObj.userId);
-        this.initSubscribeList();
-        console.log(this.subscObj);
+        this.initCreated();
       },
       mounted() {
         window.setTimeout(() => {
@@ -367,7 +380,13 @@
       },
       methods: {
         //init
-        init() {},
+        async initCreated() {
+          this.initQueryData(queryData);
+          await this.initMemberObj();
+          this.initUserObj(this.queryObj.userId);
+          this.initSubscribeList();
+          console.log("this.subscObj", this.subscObj);
+        },
         initQueryData(queryData) {
           let keys = Object.keys(queryData);
           keys.forEach((key) => {
@@ -380,55 +399,87 @@
             // }
           });
         },
-        getUserNameById(userId) {
-          let getData = (name) => {
-            this.userObj["id"] = userId;
-            this.userObj["name"] = name;
-          };
-          google.script.run.withSuccessHandler(getData).getUserName(userId);
+
+        async initMemberObj() {
+          // this.memberObj.list = this._cp(this.userObj);
+
+          let userSheetDataArry = await gasFunc("getSheetUserList");
+          userSheetDataArry = JSON.parse(userSheetDataArry);
+          let { sheetName, dataLabelArry, sheetDataArry } = userSheetDataArry;
+          this.memberObj.list = sheetDataArry.map((dataArry) => {
+            let obj = {};
+            dataLabelArry.forEach((key, key_i) => {
+              obj[key] = dataArry[key_i];
+            });
+            return obj;
+          });
         },
         initUserObj(userId) {
           let userObj = { userId: "Guest", name: "Guest" };
           if (userId) {
-            let getData = (userDataArry) => {
-              userDataArry = JSON.parse(userDataArry);
-              // console.log('userDataArry',userDataArry)
-
-              this.userDataArryKey.forEach((key, i) => {
-                userObj[key] = userDataArry[i];
-              });
-            };
-            google.script.run.withSuccessHandler(getData).getUserData(userId);
+            let userObj_temp = this.memberObj.list.find((member) => {
+              return member.userId === userId;
+            });
+            if (userObj_temp) userObj = userObj_temp;
           }
           this.userObj = userObj;
         },
-        initSubscribeList() {
-          let getData = (dataForClientObj) => {
-            let { sheetName, dataLabelArry, sheetDataArry } = dataForClientObj;
-            this.subscObj.database = sheetDataArry;
-            this.subscObj.list = sheetDataArry.map((v) => {
-              return v[0];
-            });
-            // this.subscObj.database = subscListArry;
-            // if (subscListArry.length > 1) {
-            //   this.subscObj.list = subscListArry
-            //     .filter((v, i) => {
-            //       return i !== 0;
-            //     })
-            //     .map((v) => {
-            //       return v[0];
-            //     });
-            //   // this.subscObj.list.push(this.subscObj.listAddName);
-            //   // this.subscObj.list.push(this.subscObj.listOtherName);
-            // }
-          };
-          google.script.run.withSuccessHandler(getData).getSubscribeList();
+
+        async initSubscribeList() {
+          let dataForClientObj = await gasFunc("getSubscribeList");
+          let { sheetName, dataLabelArry, sheetDataArry } = dataForClientObj;
+          this.subscObj.database = sheetDataArry;
+          this.subscObj.list = sheetDataArry.map((v) => {
+            return v[0];
+          });
+          // let getData = (dataForClientObj) => {
+          //   let { sheetName, dataLabelArry, sheetDataArry } = dataForClientObj;
+          //   this.subscObj.database = sheetDataArry;
+          //   this.subscObj.list = sheetDataArry.map((v) => {
+          //     return v[0];
+          //   });
+
+          // this.subscObj.database = subscListArry;
+          // if (subscListArry.length > 1) {
+          //   this.subscObj.list = subscListArry
+          //     .filter((v, i) => {
+          //       return i !== 0;
+          //     })
+          //     .map((v) => {
+          //       return v[0];
+          //     });
+          //   // this.subscObj.list.push(this.subscObj.listAddName);
+          //   // this.subscObj.list.push(this.subscObj.listOtherName);
+          // }
+
+          // };
+          // google.script.run.withSuccessHandler(getData).getSubscribeList();
         },
         initDeviceready() {
           this.deviceready = true;
           let tes = window.document.getElementById("app");
           tes.style.display = "block";
           console.log(tes, this);
+        },
+
+        ///////////////////
+        //common
+        //////////////////
+        onUserChange({ userId, name }) {
+          if (userId) {
+            //userIdから変更
+          } else if (name) {
+            //use nameから変更
+            let userObj_update = this.memberObj.list.find((member) => {
+              return member.name === name;
+            });
+            console.log("userObj_update", userObj_update);
+            // this.userObj=userObj_update
+          } else {
+            //none
+          }
+
+          console.log("onUserChange this.userObj", this.userObj);
         },
 
         ///////////////////
