@@ -15,8 +15,11 @@
             chips
             hint="異なる場合は選択してください。"
             persistent-hint
+            return-object
           >
           </v-select>
+          <div class="mt-2"></div>
+
           <v-select
             v-model="paymentObj.selectPaymentObj"
             :items="paymentObj.list"
@@ -29,8 +32,8 @@
             readonly
           >
           </v-select>
-          <v-divider></v-divider>
-          <div class="mt-5"></div>
+
+          <div class="mt-10"></div>
           <v-select
             v-model="subscObj.selectItemArry"
             :items="subscObj.list"
@@ -293,7 +296,9 @@
           <!-- <v-row class="submit-container"> -->
           <div class="mt-5"></div>
           <div>
-            <p>※{{userObj.name}}さんとして支払いを登録します。</p>
+            <p>
+              ※{{memberObj.selectMemberObj.name}}さんとして支払いを登録します。
+            </p>
           </div>
           <div class="mt-5"></div>
           <div class="submit-container">

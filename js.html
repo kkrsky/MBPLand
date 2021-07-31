@@ -423,6 +423,7 @@
             if (userObj_temp) userObj = userObj_temp;
           }
           this.userObj = userObj;
+          this.memberObj.selectMemberObj = this._cp(userObj);
         },
 
         async initSubscribeList() {
@@ -766,8 +767,8 @@
                 createAt: dateUNIX,
                 submitType: this.submitObj.TYPE.SUBSCRIBE,
                 attribute: ATTRIBUTE_LIST.LISTED,
-                buyUserId: this.userObj.userId,
-                buyUserName: this.userObj.name,
+                buyUserId: this.memberObj.selectMemberObj.userId,
+                buyUserName: this.memberObj.selectMemberObj.name,
                 requestUserIdArry: [this.paymentObj.TYPE.SUBSCRIBE],
                 name: selectItem,
                 price: priceArry[select_i],
@@ -804,8 +805,8 @@
                 createAt: dateUNIX,
                 submitType: this.submitObj.TYPE.SUBSCRIBE,
                 attribute: ATTRIBUTE_LIST.ADD,
-                buyUserId: this.userObj.userId,
-                buyUserName: this.userObj.name,
+                buyUserId: this.memberObj.selectMemberObj.userId,
+                buyUserName: this.memberObj.selectMemberObj.name,
                 requestUserIdArry: [this.paymentObj.TYPE.SUBSCRIBE],
                 date: dateUNIX,
                 name: selectItem,
@@ -845,8 +846,8 @@
                   createAt: dateUNIX,
                   submitType: this.submitObj.TYPE.SUBSCRIBE,
                   attribute: ATTRIBUTE_LIST.OTHER,
-                  buyUserId: this.userObj.userId,
-                  buyUserName: this.userObj.name,
+                  buyUserId: this.memberObj.selectMemberObj.userId,
+                  buyUserName: this.memberObj.selectMemberObj.name,
                   requestUserIdArry: [this.paymentObj.TYPE.SUBSCRIBE],
 
                   date: dateUNIX,
