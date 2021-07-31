@@ -92,7 +92,6 @@ class DoSheet {
       .getRange(2, 1, lastRow - 1, lastCol)
       .getValues();
     this.sheetDataArry = sheetDataArry;
-    debug("sheetDataArry", sheetDataArry);
     return sheetDataArry;
   }
   filtered({ key, filterItem }) {
@@ -204,6 +203,7 @@ let sheet_dealForm = new DoSheet({
     "sumPrice",
     "memo",
     "imageName",
+    "imageUrl",
   ],
 });
 
@@ -519,9 +519,14 @@ function getSubscribeList() {
   return sheet_subscribe.getDataForClient;
   // return sheet_subscribe.sheetDataArry;
 }
-function getPost_subscribe(postedArry) {
+function getPost_subscribe(postedArry, imageDataObj) {
   debug("posted obj", JSON.stringify(postedArry));
-
+  let blob = convertBase64ToBlob(imageDataObj.base64, imageDataObj.name);
+  let imageUrl = saveImage(blob);
+  postedArry = postedArry.map((arr) => {
+    arr.push(imageUrl);
+    return arr;
+  });
   // let latestData = getSheetDealData({ latest: 1 });
   // let latestDealId = 0;
   // if (latestData !== "blink") {
@@ -536,7 +541,9 @@ function getPost_subscribe(postedArry) {
   //   item.unshift(appendDealId + item_i);
   //   sheet_dealForm.appendRow(item);
   // });
-  sheet_dealForm.appendRow(postedArry, { isIncrement: true });
+  postedArry.forEach((arr) => {
+    sheet_dealForm.appendRow(arr, { isIncrement: true });
+  });
 }
 
 function getSheetDealData(obj) {
@@ -773,6 +780,7 @@ function formatDate(date, timeZone, format) {
   }
 }
 function getImage(imageId, imageName) {
+  // lineに送信した画像(imageId)からデータを取得
   var url = LINE_ENDPOINT_DATA + "/" + imageId + "/content";
 
   if (!imageName)
@@ -792,7 +800,13 @@ function getContent(url) {
     method: "get",
   });
 }
-
+function convertBase64ToBlob(file_base64, fileName) {
+  file_base64 = file_base64.split(",")[1];
+  let decoded = Utilities.base64Decode(file_base64);
+  let contentType = "image/png";
+  let blob = Utilities.newBlob(decoded, contentType, fileName);
+  return blob;
+}
 function saveImage(blob) {
   try {
     var folder = DriveApp.getFolderById(FOLDER_ID_PHOTO_TEST);

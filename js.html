@@ -43,6 +43,33 @@
     const ImgInputer = window["vueImgInputer"];
     Vue.component("img-inputer", ImgInputer);
   }
+  class FileReaderEx extends FileReader {
+    //https://qiita.com/dojyorin/items/26f1a48085e0bbcf40b7
+    constructor() {
+      super();
+    }
+
+    #readAs(blob, ctx) {
+      return new Promise((res, rej) => {
+        super.addEventListener("load", ({ target }) => res(target.result));
+        super.addEventListener("error", ({ target }) => rej(target.error));
+        super[ctx](blob);
+      });
+    }
+
+    readAsArrayBuffer(blob) {
+      return this.#readAs(blob, "readAsArrayBuffer");
+    }
+
+    readAsDataURL(blob) {
+      return this.#readAs(blob, "readAsDataURL");
+    }
+
+    readAsText(blob) {
+      return this.#readAs(blob, "readAsText");
+    }
+  }
+
   async function initializeVue() {
     new Vue({
       el: "#app",
@@ -179,6 +206,7 @@
           addPriceArry: [], //add_i
           addNumArry: [], //add_i
           addPriceTypeArry: [], //add_i
+          addIsShow: [], //add_i
 
           //その他情報
           listOtherName: "[その他]",
@@ -187,6 +215,7 @@
           otherPriceArry: [], //other_i
           otherNumArry: [], //other_i
           otherPriceTypeArry: [], //other_i
+          otherIsShow: [], //other_i
 
           memo: "", //投稿に対しての備考
           uploadFile: "",
@@ -527,8 +556,32 @@
             return;
           }
         },
+        deleteSubscribeList(type, delete_i) {
+          switch (type) {
+            case "add": {
+              this.subscObj.addIsShow[delete_i] = false;
+              this.subscObj.addItemNum -= 1; //描画更新
+              this.subscObj.addItemNum += 1;
+              break;
+            }
+            case "other": {
+              this.subscObj.otherIsShow[delete_i] = false;
+              this.subscObj.otherItemNum -= 1; //描画更新
+              this.subscObj.otherItemNum += 1;
 
-        submitSubscribe() {
+              break;
+            }
+            default: {
+              console.log(
+                "error: type of deleteSubscribeList is only add or other"
+              );
+            }
+          }
+        },
+        async getBase64(file) {
+          return await new FileReaderEx().readAsDataURL(file);
+        },
+        async submitSubscribe() {
           let isValidate = this.checkFormValidate(this.subscObj.refName);
           let formatSubmitObj_subscribe = () => {
             //initer
@@ -545,13 +598,14 @@
               addPriceArry,
               addNumArry,
               addPriceTypeArry,
+              addIsShow,
 
               //その他情報
               otherNameArry,
               otherPriceArry,
               otherNumArry,
               otherPriceTypeArry,
-
+              otherIsShow,
               memo,
               uploadFile,
             } = this.subscObj;
@@ -562,6 +616,35 @@
               "JST",
               "yyyy_MM_dd_HHhmmminsssec"
             );
+            let cnt_show = 0;
+            let otherNameArry_sort = otherNameArry.slice();
+            let otherPriceArry_sort = otherPriceArry.slice();
+            let otherNumArry_sort = otherNumArry.slice();
+            let otherPriceTypeArry_sort = otherPriceTypeArry.slice();
+            otherIsShow.forEach((isShow, isShow_i) => {
+              if (isShow === false) {
+                otherNameArry_sort.splice(isShow_i - cnt_show, 1);
+                otherPriceArry_sort.splice(isShow_i - cnt_show, 1);
+                otherNumArry_sort.splice(isShow_i - cnt_show, 1);
+                otherPriceTypeArry_sort.splice(isShow_i - cnt_show, 1);
+                cnt_show++;
+              }
+            });
+            cnt_show = 0;
+            let addNameArry_sort = addNameArry.slice();
+            let addPriceArry_sort = addPriceArry.slice();
+            let addNumArry_sort = addNumArry.slice();
+            let addPriceTypeArry_sort = addPriceTypeArry.slice();
+            addIsShow.forEach((isShow, isShow_i) => {
+              if (isShow === false) {
+                addNameArry_sort.splice(isShow_i - cnt_show, 1);
+                addPriceArry_sort.splice(isShow_i - cnt_show, 1);
+                addNumArry_sort.splice(isShow_i - cnt_show, 1);
+                addPriceTypeArry_sort.splice(isShow_i - cnt_show, 1);
+                cnt_show++;
+              }
+            });
+
             let priceArry = selectItemPriceArry.map((price, price_i) => {
               if (
                 selectPriceTypeArry[price_i] === this.subscObj.writePriceType[0]
@@ -578,33 +661,37 @@
                 return price;
               }
             });
-            let priceArry_add = addPriceArry.map((price, price_i) => {
+            let priceArry_add = addPriceArry_sort.map((price, price_i) => {
               if (
-                addPriceTypeArry[price_i] === this.subscObj.writePriceType[0]
+                addPriceTypeArry_sort[price_i] ===
+                this.subscObj.writePriceType[0]
               ) {
                 //１個当たりの値段
                 return price;
               } else if (
-                addPriceTypeArry[price_i] === this.subscObj.writePriceType[1]
+                addPriceTypeArry_sort[price_i] ===
+                this.subscObj.writePriceType[1]
               ) {
                 //合計金額
-                return price / addNumArry[price_i];
+                return price / addNumArry_sort[price_i];
               } else {
                 console.error("addPriceTypeArry does not exist type.");
                 return price;
               }
             });
-            let priceArry_other = otherPriceArry.map((price, price_i) => {
+            let priceArry_other = otherPriceArry_sort.map((price, price_i) => {
               if (
-                otherPriceTypeArry[price_i] === this.subscObj.writePriceType[0]
+                otherPriceTypeArry_sort[price_i] ===
+                this.subscObj.writePriceType[0]
               ) {
                 //１個当たりの値段
                 return price;
               } else if (
-                otherPriceTypeArry[price_i] === this.subscObj.writePriceType[1]
+                otherPriceTypeArry_sort[price_i] ===
+                this.subscObj.writePriceType[1]
               ) {
                 //合計金額
-                return price / otherNumArry[price_i];
+                return price / otherNumArry_sort[price_i];
               } else {
                 console.error("otherPriceTypeArry does not exist type.");
                 return price;
@@ -643,7 +730,7 @@
 
               return this.formatSubmitObjtoArry(resItem);
             });
-            let itemArry_add = addNameArry.map((selectItem, select_i) => {
+            let itemArry_add = addNameArry_sort.map((selectItem, select_i) => {
               // let resItem = [
               //   date,
               //   ATTRIBUTE_LIST.ADD,
@@ -674,8 +761,8 @@
                 price: priceArry_add[select_i],
                 sumPrice:
                   Number(priceArry_add[select_i]) *
-                  Number(addNumArry[select_i]),
-                num: addNumArry[select_i],
+                  Number(addNumArry_sort[select_i]),
+                num: addNumArry_sort[select_i],
                 memo: memo,
                 imageName: imageName,
               };
@@ -683,46 +770,48 @@
               return this.formatSubmitObjtoArry(resItem);
             });
 
-            let itemArry_other = otherNameArry.map((selectItem, select_i) => {
-              // let resItem = [
-              //   date,
-              //   ATTRIBUTE_LIST.OTHER,
-              //   selectItem,
-              //   priceArry_other[select_i],
-              //   otherNumArry[select_i],
-              //   memo,
-              //   imageName,
-              // ];
-              // let resItem = {
-              //   date: dateUNIX,
-              //   attribute: ATTRIBUTE_LIST.OTHER,
-              //   name: selectItem,
-              //   price: priceArry_other[select_i],
-              //   num: otherNumArry[select_i],
-              //   memo: memo,
-              //   imageName: imageName,
-              // };
-              let resItem = {
-                createAt: dateUNIX,
-                submitType: this.submitObj.TYPE.SUBSCRIBE,
-                attribute: ATTRIBUTE_LIST.OTHER,
-                buyUserId: this.userObj.userId,
-                buyUserName: this.userObj.name,
-                requestUserIdArry: [this.paymentObj.TYPE.SUBSCRIBE],
+            let itemArry_other = otherNameArry_sort.map(
+              (selectItem, select_i) => {
+                // let resItem = [
+                //   date,
+                //   ATTRIBUTE_LIST.OTHER,
+                //   selectItem,
+                //   priceArry_other[select_i],
+                //   otherNumArry[select_i],
+                //   memo,
+                //   imageName,
+                // ];
+                // let resItem = {
+                //   date: dateUNIX,
+                //   attribute: ATTRIBUTE_LIST.OTHER,
+                //   name: selectItem,
+                //   price: priceArry_other[select_i],
+                //   num: otherNumArry[select_i],
+                //   memo: memo,
+                //   imageName: imageName,
+                // };
+                let resItem = {
+                  createAt: dateUNIX,
+                  submitType: this.submitObj.TYPE.SUBSCRIBE,
+                  attribute: ATTRIBUTE_LIST.OTHER,
+                  buyUserId: this.userObj.userId,
+                  buyUserName: this.userObj.name,
+                  requestUserIdArry: [this.paymentObj.TYPE.SUBSCRIBE],
 
-                date: dateUNIX,
-                name: selectItem,
-                price: priceArry_other[select_i],
-                sumPrice:
-                  Number(priceArry_other[select_i]) *
-                  Number(otherNumArry[select_i]),
-                num: otherNumArry[select_i],
-                memo: memo,
-                imageName: imageName,
-              };
+                  date: dateUNIX,
+                  name: selectItem,
+                  price: priceArry_other[select_i],
+                  sumPrice:
+                    Number(priceArry_other[select_i]) *
+                    Number(otherNumArry_sort[select_i]),
+                  num: otherNumArry_sort[select_i],
+                  memo: memo,
+                  imageName: imageName,
+                };
 
-              return this.formatSubmitObjtoArry(resItem);
-            });
+                return this.formatSubmitObjtoArry(resItem);
+              }
+            );
 
             let formattedArry = itemArry
               .concat(itemArry_add)
@@ -730,19 +819,22 @@
 
             return formattedArry;
           };
-
           if (isValidate) {
             this.loadingHandler({ isLoading: true, message: "送信中..." });
 
             let formatObj = formatSubmitObj_subscribe();
-            console.log(formatObj);
+            let imageDataObj = {
+              base64: await this.getBase64(this.subscObj.uploadFile),
+              name: formatObj[0][13],
+            };
+            console.log(formatObj, imageDataObj);
             let success = () => {
               this.loadingHandler({ isLoading: false });
               this.snackFire({ message: "送信しました。" });
             };
             google.script.run
               .withSuccessHandler(success)
-              .getPost_subscribe(formatObj[0]);
+              .getPost_subscribe(formatObj, imageDataObj);
           } else {
             this.snackFire({
               message: "必要な情報を入力してください。",

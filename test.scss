@@ -35,6 +35,12 @@
     display: flex;
     justify-content: space-around;
   }
+
+  .delete-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
 }
 
 #LoadingContainer {
