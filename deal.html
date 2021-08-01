@@ -1,1 +1,62 @@
-<div id="deal">heeeeeell</div>
+<div id="deal">
+  <!-- :sort-by="['calories', 'fat']"
+  :sort-desc="[false, true]"
+  multi-sort -->
+  <v-app>
+    <v-card class="deal-card">
+      <v-select
+        v-model="userObj_temp.selectUserObj_temp"
+        :items="userObj_temp.list"
+        item-text="name"
+        item-value="userId"
+        label="表示中の人"
+        chips
+        hint="異なる場合は選択してください。"
+        return-object
+        @input="initDealDisplayList"
+      >
+      </v-select>
+      <v-data-table
+        :headers="dealObj.tableHeaders"
+        :items="dealObj.displayList"
+        class="elevation-1"
+        :sort-by="['payment_price', 'receive_price']"
+        :sort-desc="[true, true]"
+      >
+        <template v-slot:item.payment_price="{ item }">
+          <v-chip
+            :color="
+              getDealDisplayColor({
+                type: dealObj.TYPE.PAYMENT,
+                value: item.payment_price,
+              })
+            "
+          >
+            {{ item.payment_price }}
+          </v-chip>
+        </template>
+        {{ getDealDisplayColor({ type: dealObj.TYPE.ADMIN, value: "{ item }", })
+        }}
+        <template v-slot:item.receive_price="{ item }">
+          <v-chip
+            :color="
+              getDealDisplayColor({
+                type: dealObj.TYPE.RECEIVE,
+                value: item.receive_price,
+              })
+            "
+          >
+            {{ item.receive_price }}
+          </v-chip>
+        </template>
+        <template v-slot:item.actions="{ item }">
+          <v-btn icon outlined v-if="item.payment_price > 0">
+            <v-icon class="mr-2" @click="paymentAction(item)">
+              mdi-credit-card
+            </v-icon>
+          </v-btn>
+        </template>
+      </v-data-table>
+    </v-card>
+  </v-app>
+</div>

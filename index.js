@@ -29,7 +29,12 @@ class DoSheet {
     if (!sheetId) sheetId = MASTER_SPREAD_SHEET_ID;
     this.sheetId = sheetId;
     this.sheetName = sheetName;
-    this.dataLabelArry = dataLabelArry;
+    if (dataLabelArry) {
+      this.dataLabelArry = dataLabelArry;
+      this.isDatabase = true;
+    } else {
+      this.isDatabase = false;
+    }
     this.initField();
 
     //field
@@ -74,25 +79,38 @@ class DoSheet {
 
   //action
   getSheetDataArry() {
-    let lastRow = this.sheet.getLastRow();
-    let sheetDataArry = [];
-    if (lastRow === 0) {
-      //白紙
-      this.initSheet();
-      this.sheetDataArry = sheetDataArry;
-    } else if (lastRow === 1) {
-      //データラベルのみ
-      this.sheetDataArry = sheetDataArry;
+    if (this.isDatabase) {
+      //データベース仕様のシートを取得する場合
+      let lastRow = this.sheet.getLastRow();
+      let sheetDataArry = [];
+      if (lastRow === 0) {
+        //白紙
+        this.initSheet();
+        this.sheetDataArry = sheetDataArry;
+      } else if (lastRow === 1) {
+        //データラベルのみ
+        this.sheetDataArry = sheetDataArry;
+      } else {
+        let lastCol = this.sheet.getLastColumn();
+        sheetDataArry = this.sheet
+          .getRange(2, 1, lastRow - 1, lastCol)
+          .getValues();
+        this.sheetDataArry = sheetDataArry;
+      }
+      // debug("sheetDataArry", sheetDataArry);
+      return sheetDataArry;
     } else {
+      //既存のシートを取得する場合
+      let lastRow = this.sheet.getLastRow();
       let lastCol = this.sheet.getLastColumn();
-      sheetDataArry = this.sheet
-        .getRange(2, 1, lastRow - 1, lastCol)
+      let sheetDataArry = this.sheet
+        .getRange(1, 1, lastRow, lastCol)
         .getValues();
       this.sheetDataArry = sheetDataArry;
+      return sheetDataArry;
     }
-    // debug("sheetDataArry", sheetDataArry);
-    return sheetDataArry;
   }
+
   filtered({ key, filterItem, isOneItem, toLabelObj, isExist }) {
     //sheetDataArryを調整
     //isOneItem: 一次元配列で１つのデータのみを返す。(findメソッドライク)
@@ -263,6 +281,11 @@ let sheet_user = new DoSheet({
     "Icon",
     "undef",
   ],
+});
+
+let sheet_deal = new DoSheet({
+  sheetId: MASTER_SPREAD_SHEET_ID,
+  sheetName: "main",
 });
 
 //test送信
@@ -548,7 +571,10 @@ function getUserData(userId) {
   } else return false;
 }
 function getSubscribeList() {
-  return sheet_subscribe.getDataForClient;
+  return JSON.stringify(sheet_subscribe.getDataForClient);
+}
+function getDealList() {
+  return JSON.stringify(sheet_deal.getDataForClient);
 }
 function getPost_subscribe(postedArry, imageDataObj) {
   debug("posted obj", JSON.stringify(postedArry));

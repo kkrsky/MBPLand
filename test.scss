@@ -68,3 +68,13 @@
     font-size: 3rem;
   }
 }
+
+#deal {
+  .deal-card {
+    width: 90%;
+  }
+  .v-application--wrap {
+    display: flex;
+    align-items: center;
+  }
+}

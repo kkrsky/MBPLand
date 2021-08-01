@@ -123,7 +123,10 @@
         <!-- メイン -->
         <v-main>
           <div v-show="isShowDisplayById(0)">全体のお知らせ</div>
-          <div v-show="isShowDisplayById(1)">みんなのおかねのやりとり</div>
+          <!-- <div v-show="isShowDisplayById(1)">みんなのおかねのやりとり</div> -->
+          <div v-show="isShowDisplayById(1)">
+            <?!= HtmlService.createHtmlOutputFromFile('deal').getContent(); ?>
+          </div>
           <div v-show="isShowDisplayById(2)">あなたのおかねのやりとり</div>
           <div v-show="isShowDisplayById(3)">支払いリスト</div>
           <div v-show="isShowDisplayById(4)">請求リスト</div>

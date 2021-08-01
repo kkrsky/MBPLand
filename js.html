@@ -180,6 +180,23 @@
           deviceready: false,
           queryObj: {}, //自動挿入
           userObj: { userId: "Guest", name: "Guest" }, //自動挿入
+          userObj_temp: {
+            list: [
+              { name: "しあり", userId: "0", person_i_temp: 0 },
+              { name: "くれ", userId: "1", person_i_temp: 1 },
+              { name: "まどか", userId: "2", person_i_temp: 2 },
+              { name: "みく", userId: "3", person_i_temp: 3 },
+              { name: "ななみ", userId: "4", person_i_temp: 4 },
+              { name: "なるみ", userId: "5", person_i_temp: 5 },
+              { name: "れい", userId: "6", person_i_temp: 6 },
+              // { name: "Guest", userId: "Guest", person_i_temp: -1 },
+            ],
+            selectUserObj_temp: {
+              name: "しあり",
+              userId: "0",
+              person_i_temp: 0,
+            },
+          },
           memberObj: {
             list: [
               { name: "A", userId: 1 },
@@ -196,6 +213,23 @@
               ERROR: "ERROR",
             },
             requestUserIdArry: [], //請求するユーザーIDリスト
+          },
+          dealObj: {
+            list: [],
+            selectDealObj: {},
+            displayList: [],
+            tableHeaders: [
+              {
+                text: "名前",
+                sortable: false,
+                value: "name",
+              },
+              { text: "支払", value: "payment_price" },
+              { text: "受取", value: "receive_price" },
+              { text: "フォーム", value: "actions", sortable: false },
+            ],
+
+            TYPE: { PAYMENT: "PAYMENT", RECEIVE: "RECEIVE", ADMIN: "ADMIN" },
           },
           subscObj: {
             refName: "subscribe_form",
@@ -388,7 +422,10 @@
           await this.initMemberObj();
           this.initUserObj(this.queryObj.userId);
           this.initSubscribeList();
+          await this.initDealObj();
+          this.initDealDisplayList();
           console.log("this.subscObj", this.subscObj);
+          console.log("this.dealObj", this.dealObj);
         },
         initQueryData(queryData) {
           let keys = Object.keys(queryData);
@@ -431,7 +468,8 @@
 
         async initSubscribeList() {
           let dataForClientObj = await gasFunc("getSubscribeList");
-          let { sheetName, dataLabelArry, sheetDataArry } = dataForClientObj;
+          let { sheetName, dataLabelArry, sheetDataArry } =
+            JSON.parse(dataForClientObj);
           this.subscObj.database = sheetDataArry;
           this.subscObj.list = sheetDataArry.map((v) => {
             return v[0];
@@ -459,6 +497,1066 @@
           // };
           // google.script.run.withSuccessHandler(getData).getSubscribeList();
         },
+        async initDealObj() {
+          let dealListArry = await gasFunc("getDealList");
+          let { sheetName, dataLabelArry, sheetDataArry } =
+            JSON.parse(dealListArry);
+
+          let person_i_mapList = [{ name: "test", userId: "some" }];
+          //action
+          let personArry = sheetDataArry.shift().slice(1); //person_i
+
+          let paymentObjArry = personArry.map((p, p_i) => {
+            //支払いリスト
+            return {
+              name: null,
+              userId: null,
+              type: this.dealObj.TYPE.PAYMENT,
+              person_i_temp: p_i,
+              name_temp: p,
+              price: 0,
+              info: "",
+            };
+          }); //person_i
+          let receiveObjArry = personArry.map((p, p_i) => {
+            //受け取るリスト
+            return {
+              name: null,
+              userId: null,
+              type: this.dealObj.TYPE.RECEIVE,
+              person_i_temp: p_i,
+              name_temp: p,
+              price: 0,
+              info: "",
+            };
+          }); //person_i
+          let personObjArry = personArry.map((p, p_i) => {
+            //その人のお金のやりとりオブジェクト
+            return {
+              name: null,
+              userId: null,
+              type: this.dealObj.TYPE.ADMIN,
+              name_temp: p,
+              person_i_temp: p_i,
+              paymentList: JSON.parse(JSON.stringify(paymentObjArry)),
+              receiveList: JSON.parse(JSON.stringify(receiveObjArry)),
+            };
+          }); //person_i
+
+          //data inputs
+          sheetDataArry.forEach((paymentArry, person_i) => {
+            if (person_i < personArry.length) {
+              let person_current = personObjArry[person_i];
+              let name_temp = paymentArry.slice(0, 1)[0];
+              let paymentPriceArry = paymentArry.slice(1).map((num) => {
+                return Math.round(num);
+              });
+
+              if (personObjArry[person_i].name_temp === name_temp) {
+                personArry.forEach((person, p_i) => {
+                  //p_iに支払う金額を登録
+                  let payPrice = paymentPriceArry[p_i];
+                  person_current.paymentList[p_i].price = payPrice;
+
+                  //person_i(current)が受け取る金額を登録
+                  if (person_i !== p_i) {
+                    personObjArry[p_i].receiveList[person_i].price = payPrice;
+                  }
+                });
+              } else {
+                console.error(
+                  "error :name is different:",
+                  personObjArry[person_i].name_temp,
+                  " vs ",
+                  name_temp
+                );
+                window.alert(
+                  "error :name is different:",
+                  personObjArry[person_i].name_temp,
+                  " vs ",
+                  name_temp
+                );
+              }
+            }
+          });
+          this.dealObj.list = personObjArry;
+          let demo = {
+            sheetName: "main",
+            sheetDataArry: [
+              [
+                "↓払う人",
+                "しあり",
+                "くれ",
+                "まどか",
+                "みく",
+                "ななみ",
+                "なるみ",
+                "れいちゃん",
+              ],
+              [
+                "しあり",
+                0,
+                0.20000000000000284,
+                0,
+                10938.033333333333,
+                0.25,
+                -0.33333333333325754,
+                0,
+              ],
+              [
+                "くれ",
+                -0.1666666666569654,
+                6,
+                0,
+                0.1999999999998181,
+                0.08333333333303017,
+                0,
+                0,
+              ],
+              ["まどか", 9052.7, 0, 0.5, 3251.616666666667, 1177.45, 0, 0],
+              [
+                "みく",
+                20085.833333333343,
+                0,
+                0,
+                0,
+                620.9499999999998,
+                361.6666666666667,
+                0,
+              ],
+              [
+                "ななみ",
+                2663.166666666686,
+                0.19999999999998863,
+                0,
+                -0.13333333333321207,
+                0,
+                0,
+                0,
+              ],
+              [
+                "なるみ",
+                2662.9666666666453,
+                0.20000000000000284,
+                0,
+                -0.5,
+                621.45,
+                0,
+                0,
+              ],
+              [
+                "れいちゃん",
+                -0.1666666666715173,
+                0.20000000000000284,
+                0,
+                -0.25,
+                -0.466666666666697,
+                0,
+                0,
+              ],
+              ["", "", "", "", "", "", "", ""],
+              ["まとめて払ったときのフォーム", "", "", "", "", "", "", ""],
+              [
+                "https://forms.gle/SUGUhKpsoApPsyav9",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+              ],
+              ["お金を渡したときのフォーム", "", "", "", "", "", "", ""],
+              [
+                "https://forms.gle/eh1spQTWXgQAuoDH9",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+              ],
+              [
+                "誰かのものを代わりに買ったときのフォーム",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+              ],
+              [
+                "https://forms.gle/xMsz4rCJVXMQ5CFf9",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+              ],
+            ],
+          };
+          let demo2 = [
+            {
+              name: null,
+              userId: null,
+              person_i_temp: 0,
+              name_temp: "しあり",
+              paymentList: [
+                {
+                  name: null,
+                  userId: null,
+                  name_temp: "しあり",
+                  person_i_temp: 0,
+                  price: 0,
+                  info: "",
+                },
+                {
+                  name: null,
+                  userId: null,
+                  name_temp: "くれ",
+                  person_i_temp: 1,
+                  price: 0,
+                  info: "",
+                },
+                {
+                  name: null,
+                  userId: null,
+                  name_temp: "まどか",
+                  person_i_temp: 2,
+                  price: 0,
+                  info: "",
+                },
+                {
+                  name: null,
+                  userId: null,
+                  name_temp: "みく",
+                  person_i_temp: 3,
+                  price: 10938,
+                  info: "",
+                },
+                {
+                  name: null,
+                  userId: null,
+                  name_temp: "ななみ",
+                  person_i_temp: 4,
+                  price: 0,
+                  info: "",
+                },
+                {
+                  name: null,
+                  userId: null,
+                  name_temp: "なるみ",
+                  person_i_temp: 5,
+                  price: 0,
+                  info: "",
+                },
+                {
+                  name: null,
+                  userId: null,
+                  name_temp: "れいちゃん",
+                  person_i_temp: 6,
+                  price: 0,
+                  info: "",
+                },
+              ],
+              receiveList: [
+                {
+                  name: null,
+                  userId: null,
+                  person_i_temp: 0,
+                  name_temp: "しあり",
+                  price: 0,
+                  info: "",
+                },
+                {
+                  name: null,
+                  userId: null,
+                  person_i_temp: 1,
+                  name_temp: "くれ",
+                  price: 0,
+                  info: "",
+                },
+                {
+                  name: null,
+                  userId: null,
+                  person_i_temp: 2,
+                  name_temp: "まどか",
+                  price: 9053,
+                  info: "",
+                },
+                {
+                  name: null,
+                  userId: null,
+                  person_i_temp: 3,
+                  name_temp: "みく",
+                  price: 20086,
+                  info: "",
+                },
+                {
+                  name: null,
+                  userId: null,
+                  person_i_temp: 4,
+                  name_temp: "ななみ",
+                  price: 2663,
+                  info: "",
+                },
+                {
+                  name: null,
+                  userId: null,
+                  person_i_temp: 5,
+                  name_temp: "なるみ",
+                  price: 2663,
+                  info: "",
+                },
+                {
+                  name: null,
+                  userId: null,
+                  person_i_temp: 6,
+                  name_temp: "れいちゃん",
+                  price: 0,
+                  info: "",
+                },
+              ],
+            },
+            {
+              name: null,
+              userId: null,
+              person_i_temp: 1,
+              name_temp: "くれ",
+              paymentList: [
+                {
+                  name: null,
+                  userId: null,
+                  name_temp: "しあり",
+                  person_i_temp: 0,
+                  price: 0,
+                  info: "",
+                },
+                {
+                  name: null,
+                  userId: null,
+                  name_temp: "くれ",
+                  person_i_temp: 1,
+                  price: 6,
+                  info: "",
+                },
+                {
+                  name: null,
+                  userId: null,
+                  name_temp: "まどか",
+                  person_i_temp: 2,
+                  price: 0,
+                  info: "",
+                },
+                {
+                  name: null,
+                  userId: null,
+                  name_temp: "みく",
+                  person_i_temp: 3,
+                  price: 0,
+                  info: "",
+                },
+                {
+                  name: null,
+                  userId: null,
+                  name_temp: "ななみ",
+                  person_i_temp: 4,
+                  price: 0,
+                  info: "",
+                },
+                {
+                  name: null,
+                  userId: null,
+                  name_temp: "なるみ",
+                  person_i_temp: 5,
+                  price: 0,
+                  info: "",
+                },
+                {
+                  name: null,
+                  userId: null,
+                  name_temp: "れいちゃん",
+                  person_i_temp: 6,
+                  price: 0,
+                  info: "",
+                },
+              ],
+              receiveList: [
+                {
+                  name: null,
+                  userId: null,
+                  person_i_temp: 0,
+                  name_temp: "しあり",
+                  price: 0,
+                  info: "",
+                },
+                {
+                  name: null,
+                  userId: null,
+                  person_i_temp: 1,
+                  name_temp: "くれ",
+                  price: 0,
+                  info: "",
+                },
+                {
+                  name: null,
+                  userId: null,
+                  person_i_temp: 2,
+                  name_temp: "まどか",
+                  price: 0,
+                  info: "",
+                },
+                {
+                  name: null,
+                  userId: null,
+                  person_i_temp: 3,
+                  name_temp: "みく",
+                  price: 0,
+                  info: "",
+                },
+                {
+                  name: null,
+                  userId: null,
+                  person_i_temp: 4,
+                  name_temp: "ななみ",
+                  price: 0,
+                  info: "",
+                },
+                {
+                  name: null,
+                  userId: null,
+                  person_i_temp: 5,
+                  name_temp: "なるみ",
+                  price: 0,
+                  info: "",
+                },
+                {
+                  name: null,
+                  userId: null,
+                  person_i_temp: 6,
+                  name_temp: "れいちゃん",
+                  price: 0,
+                  info: "",
+                },
+              ],
+            },
+            {
+              name: null,
+              userId: null,
+              person_i_temp: 2,
+              name_temp: "まどか",
+              paymentList: [
+                {
+                  name: null,
+                  userId: null,
+                  name_temp: "しあり",
+                  person_i_temp: 0,
+                  price: 9053,
+                  info: "",
+                },
+                {
+                  name: null,
+                  userId: null,
+                  name_temp: "くれ",
+                  person_i_temp: 1,
+                  price: 0,
+                  info: "",
+                },
+                {
+                  name: null,
+                  userId: null,
+                  name_temp: "まどか",
+                  person_i_temp: 2,
+                  price: 1,
+                  info: "",
+                },
+                {
+                  name: null,
+                  userId: null,
+                  name_temp: "みく",
+                  person_i_temp: 3,
+                  price: 3252,
+                  info: "",
+                },
+                {
+                  name: null,
+                  userId: null,
+                  name_temp: "ななみ",
+                  person_i_temp: 4,
+                  price: 1177,
+                  info: "",
+                },
+                {
+                  name: null,
+                  userId: null,
+                  name_temp: "なるみ",
+                  person_i_temp: 5,
+                  price: 0,
+                  info: "",
+                },
+                {
+                  name: null,
+                  userId: null,
+                  name_temp: "れいちゃん",
+                  person_i_temp: 6,
+                  price: 0,
+                  info: "",
+                },
+              ],
+              receiveList: [
+                {
+                  name: null,
+                  userId: null,
+                  person_i_temp: 0,
+                  name_temp: "しあり",
+                  price: 0,
+                  info: "",
+                },
+                {
+                  name: null,
+                  userId: null,
+                  person_i_temp: 1,
+                  name_temp: "くれ",
+                  price: 0,
+                  info: "",
+                },
+                {
+                  name: null,
+                  userId: null,
+                  person_i_temp: 2,
+                  name_temp: "まどか",
+                  price: 0,
+                  info: "",
+                },
+                {
+                  name: null,
+                  userId: null,
+                  person_i_temp: 3,
+                  name_temp: "みく",
+                  price: 0,
+                  info: "",
+                },
+                {
+                  name: null,
+                  userId: null,
+                  person_i_temp: 4,
+                  name_temp: "ななみ",
+                  price: 0,
+                  info: "",
+                },
+                {
+                  name: null,
+                  userId: null,
+                  person_i_temp: 5,
+                  name_temp: "なるみ",
+                  price: 0,
+                  info: "",
+                },
+                {
+                  name: null,
+                  userId: null,
+                  person_i_temp: 6,
+                  name_temp: "れいちゃん",
+                  price: 0,
+                  info: "",
+                },
+              ],
+            },
+            {
+              name: null,
+              userId: null,
+              person_i_temp: 3,
+              name_temp: "みく",
+              paymentList: [
+                {
+                  name: null,
+                  userId: null,
+                  name_temp: "しあり",
+                  person_i_temp: 0,
+                  price: 20086,
+                  info: "",
+                },
+                {
+                  name: null,
+                  userId: null,
+                  name_temp: "くれ",
+                  person_i_temp: 1,
+                  price: 0,
+                  info: "",
+                },
+                {
+                  name: null,
+                  userId: null,
+                  name_temp: "まどか",
+                  person_i_temp: 2,
+                  price: 0,
+                  info: "",
+                },
+                {
+                  name: null,
+                  userId: null,
+                  name_temp: "みく",
+                  person_i_temp: 3,
+                  price: 0,
+                  info: "",
+                },
+                {
+                  name: null,
+                  userId: null,
+                  name_temp: "ななみ",
+                  person_i_temp: 4,
+                  price: 621,
+                  info: "",
+                },
+                {
+                  name: null,
+                  userId: null,
+                  name_temp: "なるみ",
+                  person_i_temp: 5,
+                  price: 362,
+                  info: "",
+                },
+                {
+                  name: null,
+                  userId: null,
+                  name_temp: "れいちゃん",
+                  person_i_temp: 6,
+                  price: 0,
+                  info: "",
+                },
+              ],
+              receiveList: [
+                {
+                  name: null,
+                  userId: null,
+                  person_i_temp: 0,
+                  name_temp: "しあり",
+                  price: 10938,
+                  info: "",
+                },
+                {
+                  name: null,
+                  userId: null,
+                  person_i_temp: 1,
+                  name_temp: "くれ",
+                  price: 0,
+                  info: "",
+                },
+                {
+                  name: null,
+                  userId: null,
+                  person_i_temp: 2,
+                  name_temp: "まどか",
+                  price: 3252,
+                  info: "",
+                },
+                {
+                  name: null,
+                  userId: null,
+                  person_i_temp: 3,
+                  name_temp: "みく",
+                  price: 0,
+                  info: "",
+                },
+                {
+                  name: null,
+                  userId: null,
+                  person_i_temp: 4,
+                  name_temp: "ななみ",
+                  price: 0,
+                  info: "",
+                },
+                {
+                  name: null,
+                  userId: null,
+                  person_i_temp: 5,
+                  name_temp: "なるみ",
+                  price: 0,
+                  info: "",
+                },
+                {
+                  name: null,
+                  userId: null,
+                  person_i_temp: 6,
+                  name_temp: "れいちゃん",
+                  price: 0,
+                  info: "",
+                },
+              ],
+            },
+            {
+              name: null,
+              userId: null,
+              person_i_temp: 4,
+              name_temp: "ななみ",
+              paymentList: [
+                {
+                  name: null,
+                  userId: null,
+                  name_temp: "しあり",
+                  person_i_temp: 0,
+                  price: 2663,
+                  info: "",
+                },
+                {
+                  name: null,
+                  userId: null,
+                  name_temp: "くれ",
+                  person_i_temp: 1,
+                  price: 0,
+                  info: "",
+                },
+                {
+                  name: null,
+                  userId: null,
+                  name_temp: "まどか",
+                  person_i_temp: 2,
+                  price: 0,
+                  info: "",
+                },
+                {
+                  name: null,
+                  userId: null,
+                  name_temp: "みく",
+                  person_i_temp: 3,
+                  price: 0,
+                  info: "",
+                },
+                {
+                  name: null,
+                  userId: null,
+                  name_temp: "ななみ",
+                  person_i_temp: 4,
+                  price: 0,
+                  info: "",
+                },
+                {
+                  name: null,
+                  userId: null,
+                  name_temp: "なるみ",
+                  person_i_temp: 5,
+                  price: 0,
+                  info: "",
+                },
+                {
+                  name: null,
+                  userId: null,
+                  name_temp: "れいちゃん",
+                  person_i_temp: 6,
+                  price: 0,
+                  info: "",
+                },
+              ],
+              receiveList: [
+                {
+                  name: null,
+                  userId: null,
+                  person_i_temp: 0,
+                  name_temp: "しあり",
+                  price: 0,
+                  info: "",
+                },
+                {
+                  name: null,
+                  userId: null,
+                  person_i_temp: 1,
+                  name_temp: "くれ",
+                  price: 0,
+                  info: "",
+                },
+                {
+                  name: null,
+                  userId: null,
+                  person_i_temp: 2,
+                  name_temp: "まどか",
+                  price: 1177,
+                  info: "",
+                },
+                {
+                  name: null,
+                  userId: null,
+                  person_i_temp: 3,
+                  name_temp: "みく",
+                  price: 621,
+                  info: "",
+                },
+                {
+                  name: null,
+                  userId: null,
+                  person_i_temp: 4,
+                  name_temp: "ななみ",
+                  price: 0,
+                  info: "",
+                },
+                {
+                  name: null,
+                  userId: null,
+                  person_i_temp: 5,
+                  name_temp: "なるみ",
+                  price: 621,
+                  info: "",
+                },
+                {
+                  name: null,
+                  userId: null,
+                  person_i_temp: 6,
+                  name_temp: "れいちゃん",
+                  price: 0,
+                  info: "",
+                },
+              ],
+            },
+            {
+              name: null,
+              userId: null,
+              person_i_temp: 5,
+              name_temp: "なるみ",
+              paymentList: [
+                {
+                  name: null,
+                  userId: null,
+                  name_temp: "しあり",
+                  person_i_temp: 0,
+                  price: 2663,
+                  info: "",
+                },
+                {
+                  name: null,
+                  userId: null,
+                  name_temp: "くれ",
+                  person_i_temp: 1,
+                  price: 0,
+                  info: "",
+                },
+                {
+                  name: null,
+                  userId: null,
+                  name_temp: "まどか",
+                  person_i_temp: 2,
+                  price: 0,
+                  info: "",
+                },
+                {
+                  name: null,
+                  userId: null,
+                  name_temp: "みく",
+                  person_i_temp: 3,
+                  price: 0,
+                  info: "",
+                },
+                {
+                  name: null,
+                  userId: null,
+                  name_temp: "ななみ",
+                  person_i_temp: 4,
+                  price: 621,
+                  info: "",
+                },
+                {
+                  name: null,
+                  userId: null,
+                  name_temp: "なるみ",
+                  person_i_temp: 5,
+                  price: 0,
+                  info: "",
+                },
+                {
+                  name: null,
+                  userId: null,
+                  name_temp: "れいちゃん",
+                  person_i_temp: 6,
+                  price: 0,
+                  info: "",
+                },
+              ],
+              receiveList: [
+                {
+                  name: null,
+                  userId: null,
+                  person_i_temp: 0,
+                  name_temp: "しあり",
+                  price: 0,
+                  info: "",
+                },
+                {
+                  name: null,
+                  userId: null,
+                  person_i_temp: 1,
+                  name_temp: "くれ",
+                  price: 0,
+                  info: "",
+                },
+                {
+                  name: null,
+                  userId: null,
+                  person_i_temp: 2,
+                  name_temp: "まどか",
+                  price: 0,
+                  info: "",
+                },
+                {
+                  name: null,
+                  userId: null,
+                  person_i_temp: 3,
+                  name_temp: "みく",
+                  price: 362,
+                  info: "",
+                },
+                {
+                  name: null,
+                  userId: null,
+                  person_i_temp: 4,
+                  name_temp: "ななみ",
+                  price: 0,
+                  info: "",
+                },
+                {
+                  name: null,
+                  userId: null,
+                  person_i_temp: 5,
+                  name_temp: "なるみ",
+                  price: 0,
+                  info: "",
+                },
+                {
+                  name: null,
+                  userId: null,
+                  person_i_temp: 6,
+                  name_temp: "れいちゃん",
+                  price: 0,
+                  info: "",
+                },
+              ],
+            },
+            {
+              name: null,
+              userId: null,
+              person_i_temp: 6,
+              name_temp: "れいちゃん",
+              paymentList: [
+                {
+                  name: null,
+                  userId: null,
+                  name_temp: "しあり",
+                  person_i_temp: 0,
+                  price: 0,
+                  info: "",
+                },
+                {
+                  name: null,
+                  userId: null,
+                  name_temp: "くれ",
+                  person_i_temp: 1,
+                  price: 0,
+                  info: "",
+                },
+                {
+                  name: null,
+                  userId: null,
+                  name_temp: "まどか",
+                  person_i_temp: 2,
+                  price: 0,
+                  info: "",
+                },
+                {
+                  name: null,
+                  userId: null,
+                  name_temp: "みく",
+                  person_i_temp: 3,
+                  price: 0,
+                  info: "",
+                },
+                {
+                  name: null,
+                  userId: null,
+                  name_temp: "ななみ",
+                  person_i_temp: 4,
+                  price: 0,
+                  info: "",
+                },
+                {
+                  name: null,
+                  userId: null,
+                  name_temp: "なるみ",
+                  person_i_temp: 5,
+                  price: 0,
+                  info: "",
+                },
+                {
+                  name: null,
+                  userId: null,
+                  name_temp: "れいちゃん",
+                  person_i_temp: 6,
+                  price: 0,
+                  info: "",
+                },
+              ],
+              receiveList: [
+                {
+                  name: null,
+                  userId: null,
+                  person_i_temp: 0,
+                  name_temp: "しあり",
+                  price: 0,
+                  info: "",
+                },
+                {
+                  name: null,
+                  userId: null,
+                  person_i_temp: 1,
+                  name_temp: "くれ",
+                  price: 0,
+                  info: "",
+                },
+                {
+                  name: null,
+                  userId: null,
+                  person_i_temp: 2,
+                  name_temp: "まどか",
+                  price: 0,
+                  info: "",
+                },
+                {
+                  name: null,
+                  userId: null,
+                  person_i_temp: 3,
+                  name_temp: "みく",
+                  price: 0,
+                  info: "",
+                },
+                {
+                  name: null,
+                  userId: null,
+                  person_i_temp: 4,
+                  name_temp: "ななみ",
+                  price: 0,
+                  info: "",
+                },
+                {
+                  name: null,
+                  userId: null,
+                  person_i_temp: 5,
+                  name_temp: "なるみ",
+                  price: 0,
+                  info: "",
+                },
+                {
+                  name: null,
+                  userId: null,
+                  person_i_temp: 6,
+                  name_temp: "れいちゃん",
+                  price: 0,
+                  info: "",
+                },
+              ],
+            },
+          ];
+        },
+
         initDeviceready() {
           this.deviceready = true;
           let tes = window.document.getElementById("app");
@@ -469,22 +1567,6 @@
         ///////////////////
         //common
         //////////////////
-        onUserChange({ userId, name }) {
-          if (userId) {
-            //userIdから変更
-          } else if (name) {
-            //use nameから変更
-            let userObj_update = this.memberObj.list.find((member) => {
-              return member.name === name;
-            });
-            console.log("userObj_update", userObj_update);
-            // this.userObj=userObj_update
-          } else {
-            //none
-          }
-
-          console.log("onUserChange this.userObj", this.userObj);
-        },
 
         ///////////////////
         //html call
@@ -897,6 +1979,100 @@
           }
         },
 
+        ///////////////////
+        //deal
+        //////////////////
+        initDealDisplayList() {
+          let checkUser = () => {
+            let result = this.dealObj.list.find((personObj) => {
+              let { userId } = personObj;
+              return userId === this.userObj.userId;
+            });
+            if (!result) {
+              //userIdがマッチしない
+              result = false;
+            }
+            return result;
+          };
+          let isUser = checkUser();
+          let dealPersonList = [];
+          if (isUser) {
+            dealPersonList = this.dealObj.list[isUser.person_i_temp];
+          } else {
+            let person_i_temp =
+              this.userObj_temp.selectUserObj_temp.person_i_temp;
+            dealPersonList = this.dealObj.list[person_i_temp];
+          }
+          dealPersonList.paymentList = dealPersonList.paymentList.map(
+            (list) => {
+              list.type = "PAYMENT";
+              return list;
+            }
+          );
+          dealPersonList.receiveList = dealPersonList.receiveList.map(
+            (list) => {
+              list.type = "RECEIVE";
+              return list;
+            }
+          );
+          let dealList = dealPersonList.paymentList.concat(
+            dealPersonList.receiveList
+          );
+          // console.log("displayList", dealList);
+
+          let displayList = [];
+          dealList.forEach((deal) => {
+            let { name, userId, type, name_temp, person_i_temp, price } = deal;
+            if (!displayList[person_i_temp]) {
+              name = name_temp;
+              displayList[person_i_temp] = {
+                name,
+                userId,
+                person_i_temp,
+                payment_price: 0,
+                receive_price: 0,
+                button: "",
+              };
+            }
+            switch (type) {
+              case this.dealObj.TYPE.PAYMENT: {
+                displayList[person_i_temp].payment_price = price;
+                if (price > 0) {
+                  displayList[person_i_temp].button = "<v-btn>test</v-btn>";
+                }
+                break;
+              }
+              case this.dealObj.TYPE.RECEIVE: {
+                displayList[person_i_temp].receive_price = price;
+                break;
+              }
+            }
+          });
+          // console.log("personArry", displayList);
+          this.dealObj.displayList = displayList;
+        },
+        paymentAction(item) {
+          console.log("paymentAction", item);
+          //お金を渡しっときのフォーム
+          window.location.href =
+            "https://docs.google.com/forms/d/e/1FAIpQLScEsud7xV_KfqEWiVFgOSG1VBfLu8hHa-zLmnh0_Ymv4Iv_6A/viewform";
+        },
+        getDealDisplayColor({ type, value }) {
+          let resColor = "";
+          if (value > 0) {
+            switch (type) {
+              case this.dealObj.TYPE.PAYMENT: {
+                resColor = "red";
+                break;
+              }
+              case this.dealObj.TYPE.RECEIVE: {
+                resColor = "green";
+                break;
+              }
+            }
+          }
+          return resColor;
+        },
         ///////////////////
         //form
         //////////////////

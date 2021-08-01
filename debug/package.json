@@ -17,6 +17,7 @@
   },
   "main": "index.js",
   "dependencies": {
+    "@mdi/font": "^5.9.55",
     "cordova-plugin-device": "2.0.3",
     "core-js": "^3.6.5",
     "leaflet": "^1.6.0",

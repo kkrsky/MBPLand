@@ -1,14 +1,16 @@
 <template>
   <v-app>
-    <main-page></main-page>
+    <!-- <main-page></main-page> -->
+    <deal-page></deal-page>
   </v-app>
 </template>
 
 <script>
 import mainPage from "./views/main.vue";
+import dealPage from "./views/deal.vue";
 export default {
   name: "App",
-  components: { mainPage },
+  components: { mainPage, dealPage },
   data: () => {
     return {};
   },
