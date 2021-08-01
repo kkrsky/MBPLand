@@ -1,0 +1,24 @@
+//構造系
+$footer-tab-height: 9vh;
+$icon-size__square: 2rem;
+
+//色系 https://qiita.com/eltociear/items/39bcd78befdbd2c4b58c
+//黒色の画像を変換する
+$filter-color-black: brightness(1) invert(0);
+$filter-color-white: brightness(1) invert(1);
+$filter-color-red: invert(15%) sepia(95%) saturate(6932%) hue-rotate(358deg)
+  brightness(95%) contrast(112%);
+$filter-color-green: invert(17%) sepia(91%) saturate(7085%) hue-rotate(128deg)
+  brightness(100%) contrast(106%);
+$filter-color-blue: invert(8%) sepia(99%) saturate(7044%) hue-rotate(247deg)
+  brightness(100%) contrast(145%);
+$filter-color-gray: invert(50%) sepia(0%) saturate(11%) hue-rotate(143deg)
+  brightness(101%) contrast(93%);
+$filter-color-yellow: invert(81%) sepia(81%) saturate(633%) hue-rotate(359deg)
+  brightness(106%) contrast(105%);
+$filter-color-orange: invert(72%) sepia(26%) saturate(6428%) hue-rotate(1deg)
+  brightness(105%) contrast(102%);
+$filter-color-aqua: invert(88%) sepia(100%) saturate(2929%) hue-rotate(104deg)
+  brightness(99%) contrast(104%);
+$filter-color-purple: invert(11%) sepia(71%) saturate(5170%) hue-rotate(293deg)
+  brightness(87%) contrast(111%);

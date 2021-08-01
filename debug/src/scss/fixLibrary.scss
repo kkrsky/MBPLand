@@ -1,0 +1,5 @@
+// ライブラリのCSSを上書きする用
+
+.v-footer--fixed {
+  z-index: 10000 !important;
+}

@@ -175,182 +175,185 @@
           },
         },
       }),
-      data: {
-        deviceready: false,
-        queryObj: {}, //自動挿入
-        userObj: { userId: "Guest", name: "Guest" }, //自動挿入
-        memberObj: {
-          list: [
-            { name: "A", userId: 1 },
-            { name: "B", userId: 2 },
-          ], //自動挿入
-          selectMemberObj: [], //代理ログイン用,現在のユーザーが自動挿入
-          subscribeMemberList: [], //自動挿入
-        },
-        paymentObj: {
-          list: [{ label: "SUBSCRIBE", value: "SUBSCRIBE" }],
-          selectPaymentObj: { label: "SUBSCRIBE", value: "SUBSCRIBE" },
-          TYPE: {
-            SUBSCRIBE: "SUBSCRIBE",
-            ERROR: "ERROR",
+      data: () => {
+        return {
+          deviceready: false,
+          queryObj: {}, //自動挿入
+          userObj: { userId: "Guest", name: "Guest" }, //自動挿入
+          memberObj: {
+            list: [
+              { name: "A", userId: 1 },
+              { name: "B", userId: 2 },
+            ], //自動挿入
+            selectMemberObj: [], //代理ログイン用,現在のユーザーが自動挿入
+            subscribeMemberList: [], //自動挿入
           },
-          requestUserIdArry: [], //請求するユーザーIDリスト
-        },
-        subscObj: {
-          refName: "subscribe_form",
-          database: {}, //自動挿入
-          list: ["A", "B", "C", "その他", "追加"],
-          writePriceType: ["１個当たりの値段", "合計金額"],
-          ATTRIBUTE_LIST: {
-            LISTED: "LISTED",
-            ADD: "ADD",
-            OTHER: "OTHER",
-            ERROR: "ERROR",
+          paymentObj: {
+            list: [{ label: "SUBSCRIBE", value: "SUBSCRIBE" }],
+            selectPaymentObj: { label: "SUBSCRIBE", value: "SUBSCRIBE" },
+            TYPE: {
+              SUBSCRIBE: "SUBSCRIBE",
+              ERROR: "ERROR",
+            },
+            requestUserIdArry: [], //請求するユーザーIDリスト
           },
+          subscObj: {
+            refName: "subscribe_form",
+            database: {}, //自動挿入
+            list: ["A", "B", "C", "その他", "追加"],
+            writePriceType: ["１個当たりの値段", "合計金額"],
+            ATTRIBUTE_LIST: {
+              LISTED: "LISTED",
+              ADD: "ADD",
+              OTHER: "OTHER",
+              ERROR: "ERROR",
+            },
 
-          //リスト情報
-          selectItemArry: [], //selectItem_i
-          selectItemPriceArry: [], //selectItem_i
-          selectItemNumArry: [], //selectItem_i
-          selectPriceTypeArry: [], //selectItem_i
+            //リスト情報
+            selectItemArry: [], //selectItem_i
+            selectItemPriceArry: [], //selectItem_i
+            selectItemNumArry: [], //selectItem_i
+            selectPriceTypeArry: [], //selectItem_i
 
-          //追加情報
-          listAddName: "[追加]",
-          addItemNum: 0,
-          addNameArry: [], //add_i
-          addPriceArry: [], //add_i
-          addNumArry: [], //add_i
-          addPriceTypeArry: [], //add_i
-          addIsShow: [], //add_i
+            //追加情報
+            listAddName: "[追加]",
+            addItemNum: 0,
+            addNameArry: [], //add_i
+            addPriceArry: [], //add_i
+            addNumArry: [], //add_i
+            addPriceTypeArry: [], //add_i
+            addIsShow: [], //add_i
 
-          //その他情報
-          listOtherName: "[その他]",
-          otherItemNum: 0,
-          otherNameArry: [], //other_i
-          otherPriceArry: [], //other_i
-          otherNumArry: [], //other_i
-          otherPriceTypeArry: [], //other_i
-          otherIsShow: [], //other_i
+            //その他情報
+            listOtherName: "[その他]",
+            otherItemNum: 0,
+            otherNameArry: [], //other_i
+            otherPriceArry: [], //other_i
+            otherNumArry: [], //other_i
+            otherPriceTypeArry: [], //other_i
+            otherIsShow: [], //other_i
 
-          memo: "", //投稿に対しての備考
-          uploadFile: "",
-        },
-        validateRules: {
-          required: (value) => !!value || "必ず入力してください", // 入力必須の制約
-          number: (value) => !isNaN(Number(value)) || "数値を入力してください", // 入力必須の制約
-          exceptZero: (value) => !(value == 0) || "0は入力できません。", // 入力必須の制約
-        },
-        loadingObj: {
-          isLoading: false,
-          message: "Loading...",
-        },
-        helper: {},
-        submitObj: {
-          template: {
-            // deal_id:'', //自動挿入される
-            createAt: "",
-            deleteAt: "",
-            updateAt: "",
-            submitType: "DEFAULT",
-            attribute: null,
-            buyUserId: null,
-            buyUserName: null,
-            requestUserIdArry: [],
-            name: null,
-            num: null,
-            price: null,
-            sumPrice: null,
-            memo: "",
-            imageName: null,
-            // imageUrl:''//自動挿入される
+            memo: "", //投稿に対しての備考
+            uploadFile: "",
           },
-          TYPE: {
-            SUBSCRIBE: "SUBSCRIBE", //サブスク
-            BUY: "BUY", //購入
-            REQUEST: "REQUEST", //請求
-            PAYMENT: "PAYMENT", //返金
-            NOTICE: "NOTICE", //通知
-            ERROR: "ERROR", //エラー
+          validateRules: {
+            required: (value) => !!value || "必ず入力してください", // 入力必須の制約
+            number: (value) =>
+              !isNaN(Number(value)) || "数値を入力してください", // 入力必須の制約
+            exceptZero: (value) => !(value == 0) || "0は入力できません。", // 入力必須の制約
           },
-        },
-        leftMiniVariant: false,
-        leftDrawer: false,
-        rightDrawer: false,
-        selectedItem: 1,
-        userDataArryKey: [
-          "createAt",
-          "deleteAt",
-          "name",
-          "userId",
-          "status",
-          "iconUrl",
-          "ZZZ",
-        ],
-        leftDrowerList: [
-          {
-            id: 0,
-            text: "全体のお知らせ",
-            icon: "mdi-newspaper",
-            goto: "/",
-            isShow: true,
+          loadingObj: {
+            isLoading: false,
+            message: "Loading...",
           },
-          {
-            id: 1,
-            text: "みんなのおかねのやりとり",
-            icon: "mdi-credit-card-multiple",
-            goto: "/",
-            isShow: true,
+          helper: {},
+          submitObj: {
+            template: {
+              // deal_id:'', //自動挿入される
+              createAt: "",
+              deleteAt: "",
+              updateAt: "",
+              submitType: "DEFAULT",
+              attribute: null,
+              buyUserId: null,
+              buyUserName: null,
+              requestUserIdArry: [],
+              name: null,
+              num: null,
+              price: null,
+              sumPrice: null,
+              memo: "",
+              imageName: null,
+              // imageUrl:''//自動挿入される
+            },
+            TYPE: {
+              SUBSCRIBE: "SUBSCRIBE", //サブスク
+              BUY: "BUY", //購入
+              REQUEST: "REQUEST", //請求
+              PAYMENT: "PAYMENT", //返金
+              NOTICE: "NOTICE", //通知
+              ERROR: "ERROR", //エラー
+            },
           },
-          {
-            id: 2,
-            text: "あなたのおかねのやりとり",
-            icon: "mdi-credit-card",
-            goto: "/",
-            isShow: true,
-          },
-          {
-            id: 3,
-            text: "支払いリスト",
-            icon: "mdi-export",
-            goto: "/",
-            isShow: true,
-          },
-          {
-            id: 4,
-            text: "請求リスト",
-            icon: "mdi-import",
-            goto: "/",
-            isShow: true,
-          },
-          {
-            id: 5,
-            text: "請求を追加",
-            icon: "mdi-import",
-            goto: "/",
-            isShow: true,
-          },
-          {
-            id: 6,
-            text: "設定",
-            icon: "mdi-settings",
-            goto: "settings",
-            isShow: true,
-          },
-          {
-            id: 7,
-            text: "テスト",
-            icon: "mdi-flag",
-            goto: "test",
-            isShow: true,
-          },
-          {
-            id: 8,
-            text: "テスト2",
-            icon: "mdi-flag",
-            goto: "test",
-            isShow: true,
-          },
-        ],
+          leftMiniVariant: false,
+          leftDrawer: false,
+          rightDrawer: false,
+          selectedItem: 1,
+          userDataArryKey: [
+            "createAt",
+            "deleteAt",
+            "name",
+            "userId",
+            "status",
+            "iconUrl",
+            "ZZZ",
+          ],
+          leftDrowerList: [
+            {
+              id: 0,
+              text: "全体のお知らせ",
+              icon: "mdi-newspaper",
+              goto: "/",
+              isShow: true,
+            },
+            {
+              id: 1,
+              text: "みんなのおかねのやりとり",
+              icon: "mdi-credit-card-multiple",
+              goto: "/",
+              isShow: true,
+            },
+            {
+              id: 2,
+              text: "あなたのおかねのやりとり",
+              icon: "mdi-credit-card",
+              goto: "/",
+              isShow: true,
+            },
+            {
+              id: 3,
+              text: "支払いリスト",
+              icon: "mdi-export",
+              goto: "/",
+              isShow: true,
+            },
+            {
+              id: 4,
+              text: "請求リスト",
+              icon: "mdi-import",
+              goto: "/",
+              isShow: true,
+            },
+            {
+              id: 5,
+              text: "請求を追加",
+              icon: "mdi-import",
+              goto: "/",
+              isShow: true,
+            },
+            {
+              id: 6,
+              text: "設定",
+              icon: "mdi-settings",
+              goto: "settings",
+              isShow: true,
+            },
+            {
+              id: 7,
+              text: "テスト",
+              icon: "mdi-flag",
+              goto: "test",
+              isShow: true,
+            },
+            {
+              id: 8,
+              text: "テスト2",
+              icon: "mdi-flag",
+              goto: "test",
+              isShow: true,
+            },
+          ],
+        };
       },
       created() {
         this.initCreated();

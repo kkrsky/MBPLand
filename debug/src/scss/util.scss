@@ -1,0 +1,24 @@
+@import "./variables";
+.btn {
+  cursor: pointer;
+  // height: $icon-size__square;
+  // width: $icon-size__square;
+  height: 100%;
+  width: 100%;
+  display: flex;
+  // justify-content: center;
+  // align-items: center;
+  justify-content: inherit;
+  align-items: inherit;
+  &:active {
+    filter: $filter-color-red;
+  }
+}
+
+//色系
+.img-color-black {
+  filter: $filter-color-black;
+}
+.img-color-white {
+  filter: $filter-color-white;
+}
