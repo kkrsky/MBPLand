@@ -23,6 +23,10 @@
           class="elevation-1"
           :sort-by="['payment_price', 'receive_price']"
           :sort-desc="[true, true]"
+          :calculate-widths="true"
+          mobile-breakpoint="370"
+          :loading="dealObj.isLoading"
+          loading-text="Loading... Please wait"
         >
           <template v-slot:item.payment_price="{ item }">
             <v-chip
@@ -32,16 +36,12 @@
                   value: item.payment_price,
                 })
               "
+              dark
             >
               {{ item.payment_price }}
             </v-chip>
           </template>
-          {{
-            getDealDisplayColor({
-              type: dealObj.TYPE.ADMIN,
-              value: "{ item }",
-            })
-          }}
+
           <template v-slot:item.receive_price="{ item }">
             <v-chip
               :color="
@@ -56,11 +56,9 @@
             </v-chip>
           </template>
           <template v-slot:item.actions="{ item }">
-            <v-btn icon outlined v-if="item.payment_price > 0">
-              <v-icon class="mr-2" @click="paymentAction(item)">
-                mdi-credit-card
-              </v-icon>
-            </v-btn>
+            <v-icon v-if="item.payment_price > 0" @click="paymentAction(item)">
+              mdi-credit-card
+            </v-icon>
           </template>
         </v-data-table>
       </v-card>
@@ -91,6 +89,7 @@ export default {
       },
 
       dealObj: {
+        isLoading: true,
         list: [
           {
             name: null,
@@ -956,14 +955,16 @@ export default {
           },
           { text: "支払", value: "payment_price" },
           { text: "受取", value: "receive_price" },
-          { text: "フォーム", value: "actions", sortable: false },
+          { text: "", value: "actions", sortable: false },
         ],
+
         TYPE: { PAYMENT: "PAYMENT", RECEIVE: "RECEIVE", ADMIN: "ADMIN" },
       },
     };
   },
   mounted() {
     this.initDealDisplayList();
+    this.dealObj.isLoading = false;
   },
   created() {},
   watch: {},
@@ -1070,7 +1071,7 @@ export default {
 
 <style lang="scss">
 .deal-card {
-  width: 90%;
+  width: 100%;
 }
 .v-application--wrap {
   display: flex;

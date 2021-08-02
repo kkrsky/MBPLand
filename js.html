@@ -215,6 +215,7 @@
             requestUserIdArry: [], //請求するユーザーIDリスト
           },
           dealObj: {
+            isLoading: true,
             list: [],
             selectDealObj: {},
             displayList: [],
@@ -226,7 +227,7 @@
               },
               { text: "支払", value: "payment_price" },
               { text: "受取", value: "receive_price" },
-              { text: "フォーム", value: "actions", sortable: false },
+              { text: "", value: "actions", sortable: false },
             ],
 
             TYPE: { PAYMENT: "PAYMENT", RECEIVE: "RECEIVE", ADMIN: "ADMIN" },
@@ -424,6 +425,7 @@
           this.initSubscribeList();
           await this.initDealObj();
           this.initDealDisplayList();
+
           console.log("this.subscObj", this.subscObj);
           console.log("this.dealObj", this.dealObj);
         },
@@ -2050,6 +2052,7 @@
           });
           // console.log("personArry", displayList);
           this.dealObj.displayList = displayList;
+          this.dealObj.isLoading = false;
         },
         paymentAction(item) {
           console.log("paymentAction", item);
