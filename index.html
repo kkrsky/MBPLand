@@ -96,6 +96,11 @@
                 :key="item.id"
                 :class="item.isShow ? '' :'semi-disable' "
               >
+                <div style="display: none">
+                  {{(item.id===4 && item.isShow)?snackFire({ message:
+                  "作成予定..." }):null }} {{(item.id===5 &&
+                  item.isShow)?snackFire({ message: "作成予定..." }):null }}
+                </div>
                 <!-- :to="item.goto" -->
                 <v-list-item-icon>
                   <v-icon v-text="item.icon"></v-icon>
@@ -112,22 +117,29 @@
           <v-app-bar-nav-icon
             @click="leftDrawer=!leftDrawer"
           ></v-app-bar-nav-icon>
-          <v-btn @click="leftDrawer=!leftDrawer">leftDrawer</v-btn>
+          <!-- <v-btn @click="leftDrawer=!leftDrawer">leftDrawer</v-btn>
           <v-btn @click="rightDrawer=!rightDrawer">rightDrawer</v-btn>
           <v-btn @click="leftMiniVariant=!leftMiniVariant"
             >leftMiniVariant</v-btn
-          >
-          <v-toolbar-title>Title</v-toolbar-title>
+          > -->
+          <v-toolbar-title>おかねのやりとり</v-toolbar-title>
         </v-app-bar>
 
         <!-- メイン -->
         <v-main>
-          <div v-show="isShowDisplayById(0)">全体のお知らせ</div>
+          <!-- <div v-show="isShowDisplayById(0)">全体のお知らせ</div> -->
           <!-- <div v-show="isShowDisplayById(1)">みんなのおかねのやりとり</div> -->
           <div v-show="isShowDisplayById(1)">
             <?!= HtmlService.createHtmlOutputFromFile('deal').getContent(); ?>
           </div>
-          <div v-show="isShowDisplayById(2)">あなたのおかねのやりとり</div>
+          <div v-show="isShowDisplayById(4)">
+            支払い登録ページです。(実装予定...)
+          </div>
+          <div v-show="isShowDisplayById(5)">
+            おかねのやりとり履歴です。(実装予定...)
+          </div>
+          <!-- <?!= HtmlService.createHtmlOutputFromFile('subscribe').getContent(); ?> -->
+          <!-- <div v-show="isShowDisplayById(2)">あなたのおかねのやりとり</div>
           <div v-show="isShowDisplayById(3)">支払いリスト</div>
           <div v-show="isShowDisplayById(4)">請求リスト</div>
           <div v-show="isShowDisplayById(5)">
@@ -138,7 +150,7 @@
           <div v-show="isShowDisplayById(8)">
             <?!= HtmlService.createHtmlOutputFromFile('test').getContent(); ?>
           </div>
-          <router-view />
+          <router-view /> -->
         </v-main>
 
         <!-- フッター -->

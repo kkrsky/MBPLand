@@ -1,10 +1,10 @@
 <template>
-  <div id="deal">
+  <div id="history">
     <!-- :sort-by="['calories', 'fat']"
     :sort-desc="[false, true]"
     multi-sort -->
     <v-app>
-      <v-card class="deal-card">
+      <v-card class="history-card">
         <v-select
           v-model="userObj_temp.selectUserObj_temp"
           :items="userObj_temp.list"
@@ -14,51 +14,87 @@
           chips
           hint="異なる場合は選択してください。"
           return-object
-          @input="initDealDisplayList"
+          @input="initHistoryDisplayList"
         >
         </v-select>
+        <!-- :sort-by="['', '']"
+          :sort-desc="[true, true]" -->
         <v-data-table
-          :headers="dealObj.tableHeaders"
-          :items="dealObj.displayList"
+          item-key="id"
+          :headers="historyObj.tableHeaders"
+          :items="historyObj.displayList"
           class="elevation-1"
-          :sort-by="['payment_price', 'receive_price']"
-          :sort-desc="[true, true]"
           :calculate-widths="true"
           mobile-breakpoint="370"
-          :loading="dealObj.isLoading"
+          :loading="historyObj.isLoading"
           loading-text="Loading... Please wait"
+          :expanded="expanded"
+          show-expand
+          @click:row="expandRow"
         >
-          <template v-slot:item.payment_price="{ item }">
-            <v-chip
-              :color="
-                getDealDisplayColor({
-                  type: dealObj.TYPE.PAYMENT,
-                  value: item.payment_price,
-                })
-              "
-              dark
-            >
-              {{ item.payment_price }}
+          <template v-slot:item.price="{ item }">
+            <v-chip>
+              {{ item.price }}
             </v-chip>
           </template>
+          <template v-slot:expanded-item="{ headers, item }">
+            <td :colspan="headers.length">
+              <v-container :colspan="headers.length" class="expand-container">
+                <v-row>
+                  <v-col class="expand-small">{{
+                    formatDate(item.createAt, "JST", "yyyy/MM/dd")
+                  }}</v-col>
+                  <v-col class="expand-title">{{ item.submitType }}</v-col>
+                  <v-col
+                    ><div v-if="item.imageUrl.split('http').length > 1">
+                      <v-icon @click="test">mdi-map</v-icon>
+                    </div>
+                  </v-col>
+                </v-row>
+                <v-divider></v-divider>
 
-          <template v-slot:item.receive_price="{ item }">
-            <v-chip
-              :color="
-                getDealDisplayColor({
-                  type: dealObj.TYPE.RECEIVE,
-                  value: item.receive_price,
-                })
-              "
-              dark
-            >
-              {{ item.receive_price }}
-            </v-chip>
-          </template>
-          <template v-slot:item.actions="{ item }">
-            <v-icon v-if="item.payment_price > 0" @click="paymentAction(item)">
-              mdi-credit-card
-            </v-icon>
+                <v-row>
+                  <v-col>{{ item.name }}</v-col>
+                  <v-col
+                    ><v-chip>{{ item.price }}</v-chip> 円</v-col
+                  >
+                </v-row>
+                <v-divider></v-divider>
+                <v-row>
+                  <v-col>{{ item.buyUserName }}</v-col>
+                  <v-col cols="2"
+                    ><v-icon>mdi-arrow-left-bold-circle</v-icon></v-col
+                  >
+                  <v-col>
+                    <v-container v-if="!Array.isArray(item.requestUserName)">
+                      <v-row>{{ item.requestUserName }}</v-row>
+                    </v-container>
+                    <v-container v-if="Array.isArray(item.requestUserName)">
+                      <v-row
+                        v-for="requestUserName in item.requestUserName"
+                        :key="requestUserName"
+                        >{{ requestUserName }}</v-row
+                      >
+                    </v-container></v-col
+                  >
+                  <!-- <table border="0">
+                      <tbody>
+                        <tr>
+                          <td>内容1</td>
+                        </tr>
+                        <tr>
+                          <td>内容1</td>
+                        </tr>
+                      </tbody>
+                    </table> -->
+                </v-row>
+                <v-divider></v-divider>
+                <v-row class="expand-memo-container">
+                  <v-col>{{ item.memo }}</v-col>
+                  <p class="expand-small">メモ</p>
+                </v-row>
+              </v-container>
+            </td>
           </template>
         </v-data-table>
       </v-card>
@@ -70,6 +106,7 @@
 export default {
   data() {
     return {
+      expanded: [],
       userObj: {
         name: "Guest",
         userId: "Guest",
@@ -960,11 +997,36 @@ export default {
 
         TYPE: { PAYMENT: "PAYMENT", RECEIVE: "RECEIVE", ADMIN: "ADMIN" },
       },
+      historyObj: {
+        isLoading: false,
+        list: [],
+        displayList: [],
+        tableHeaders: [
+          {
+            text: "登録者",
+            sortable: false,
+            value: "buyUserName",
+          },
+          {
+            text: "内容",
+            sortable: false,
+            value: "name",
+          },
+          {
+            text: "値段",
+            sortable: false,
+            value: "price",
+          },
+          { text: "", value: "data-table-expand" },
+        ],
+      },
     };
   },
   mounted() {
-    this.initDealDisplayList();
+    this.initHistoryDisplayList();
     this.dealObj.isLoading = false;
+    this.initHistoryObj();
+    this.initHistoryDisplayList();
   },
   created() {},
   watch: {},
@@ -993,22 +1055,10 @@ export default {
         let person_i_temp = this.userObj_temp.selectUserObj_temp.person_i_temp;
         dealPersonList = this.dealObj.list[person_i_temp];
       }
-      //////////////////////////
-      /////////only .vue/////////////
-      //////////////////////////
 
-      dealPersonList.paymentList = dealPersonList.paymentList.map((list) => {
-        list.type = "PAYMENT";
-        return list;
-      });
-      dealPersonList.receiveList = dealPersonList.receiveList.map((list) => {
-        list.type = "RECEIVE";
-        return list;
-      });
-
-      //////////////////////////
-      //////////////////////////
-      //////////////////////////
+      /////////////////////
+      /////////////////////
+      /////////////////////
       let dealList = dealPersonList.paymentList.concat(
         dealPersonList.receiveList
       );
@@ -1045,42 +1095,96 @@ export default {
       console.log("personArry", displayList);
       this.dealObj.displayList = displayList;
     },
-    paymentAction(item) {
-      console.log(item);
-      //お金を渡しっときのフォーム
-      window.open(
-        "https://docs.google.com/forms/d/e/1FAIpQLScEsud7xV_KfqEWiVFgOSG1VBfLu8hHa-zLmnh0_Ymv4Iv_6A/viewform"
-      );
-      // window.location.href =
-      //   "https://docs.google.com/forms/d/e/1FAIpQLScEsud7xV_KfqEWiVFgOSG1VBfLu8hHa-zLmnh0_Ymv4Iv_6A/viewform";
+    initHistoryDisplayList() {
+      this.historyObj.displayList = this.historyObj.list;
     },
-    getDealDisplayColor({ type, value }) {
-      // console.log("getDealDisplayColor", type, value);
-      let resColor = "";
-      if (value > 0) {
-        switch (type) {
-          case this.dealObj.TYPE.PAYMENT: {
-            resColor = "red";
-            break;
-          }
-          case this.dealObj.TYPE.RECEIVE: {
-            resColor = "green";
-            break;
-          }
-        }
-      }
-      return resColor;
+    initHistoryObj() {
+      let historySheetDataArry_demo =
+        '{"sheetName":"deal_form","dataLabelArry":["id","createAt","deleteAt","updateAt","submitType","attribute","buyUserId","buyUserName","requestUserId","requestUserName","name","num","price","sumPrice","memo","imageName","imageUrl"],"sheetDataArry":[[1,1627914759503,"","","SUBSCRIBE","LISTED","U908d37a8e2f8d8ccf51edcf44ddbffd1","紅林 亮平","SUBSCRIBE",["SUBSCRIBE","SUBSCRIBE1","SUBSCRIBE2","SUBSCRIBE3"],"米",5,4000,220,"b年月日のうち月日のみを抽出するやり方を調べたけどいい感じのが見つからず、.slice()が簡単な気がきました年月日のうち月日のみを抽出するやり方を調べたけどいい感じのが見つからず、.slice()が簡単な気がきました年月日のうち月日のみを抽出するやり方を調べたけどいい感じのが見つからず、.slice()が簡単な気がきました","2021_08_02_23h32min39sec","d/1y35PeK5rU9uBBn3msO68SQhvyuQWej-w/view?usp=drivesdk"],[2,1627914759503,"","","SUBSCRIBE","ADD","U908d37a8e2f8d8ccf51edcf44ddbffd1","紅林 亮平","SUBSCRIBE","SUBSCRIBE","a",4,4,16,"b","2021_08_02_23h32min39sec","https://drive.google.com/file/d/1y35PeK5rU9uBBn3msO68SQhvyuQWej-w/view?usp=drivesdk"],[3,1627914759503,"","","SUBSCRIBE","OTHER","U908d37a8e2f8d8ccf51edcf44ddbffd1","紅林 亮平","SUBSCRIBE","SUBSCRIBE","v",5,4,20,"b","2021_08_02_23h32min39sec","https://drive.google.com/file/d/1y35PeK5rU9uBBn3msO68SQhvyuQWej-w/view?usp=drivesdk"],[4,1627914817325,"","","SUBSCRIBE","LISTED","U908d37a8e2f8d8ccf51edcf44ddbffd1","紅林 亮平","SUBSCRIBE","SUBSCRIBE","米",5,44,220,"b","2021_08_02_23h33min37sec","https://drive.google.com/file/d/1p_I8fdsSWC7nI8t8b_BZVw2hv5Ar7WUe/view?usp=drivesdk"],[5,1627914817325,"","","SUBSCRIBE","ADD","U908d37a8e2f8d8ccf51edcf44ddbffd1","紅林 亮平","SUBSCRIBE","SUBSCRIBE","a",4,4,16,"b","2021_08_02_23h33min37sec","https://drive.google.com/file/d/1p_I8fdsSWC7nI8t8b_BZVw2hv5Ar7WUe/view?usp=drivesdk"],[6,1627914817325,"","","SUBSCRIBE","OTHER","U908d37a8e2f8d8ccf51edcf44ddbffd1","紅林 亮平","SUBSCRIBE","SUBSCRIBE","v",5,4,20,"b","2021_08_02_23h33min37sec","https://drive.google.com/file/d/1p_I8fdsSWC7nI8t8b_BZVw2hv5Ar7WUe/view?usp=drivesdk"]]}';
+
+      let historySheetDataArry;
+      // let historySheetDataArry = await gasFunc("getHistoryList");
+      historySheetDataArry = JSON.parse(historySheetDataArry_demo);
+      let { sheetName, dataLabelArry, sheetDataArry } = historySheetDataArry;
+      this.historyObj.list = sheetDataArry.map((dataArry) => {
+        let obj = {};
+        dataLabelArry.forEach((key, key_i) => {
+          obj[key] = dataArry[key_i];
+        });
+        return obj;
+      });
+      console.log("this.historyObj", this.historyObj);
+    },
+    expandRow(item) {
+      this.expanded = item === this.expanded[0] ? [] : [item];
+    },
+
+    //utils
+    formatDate(date, timeZone, format) {
+      date = new Date(date);
+      if (!format) var format = "yyyy/MM/dd HH:mm";
+      format = format.replace(/yyyy/g, date.getFullYear());
+      format = format.replace(/MM/g, ("0" + (date.getMonth() + 1)).slice(-2));
+      format = format.replace(/dd/g, ("0" + date.getDate()).slice(-2));
+      format = format.replace(/HH/g, ("0" + date.getHours()).slice(-2));
+      format = format.replace(/mm/g, ("0" + date.getMinutes()).slice(-2));
+      format = format.replace(/ss/g, ("0" + date.getSeconds()).slice(-2));
+      format = format.replace(
+        /SSS/g,
+        ("00" + date.getMilliseconds()).slice(-3)
+      );
+      return format;
     },
   },
 };
 </script>
 
 <style lang="scss">
-.deal-card {
+#history {
   width: 100%;
-}
-.v-application--wrap {
-  display: flex;
-  align-items: center;
+  .v-data-footer__pagination {
+    margin: auto;
+  }
+  .v-application--wrap {
+    display: flex;
+    align-items: center;
+  }
+  .history-card {
+    width: 100%;
+  }
+  .expand-container {
+    width: 100%;
+    .expand-title {
+      font-weight: bold;
+    }
+    .expand-small {
+      font-size: 0.75rem;
+    }
+    .expand-memo-container {
+      position: relative;
+      .col {
+        margin: 0 0 0 2rem;
+      }
+      p {
+        position: absolute;
+        top: 0;
+        left: 0;
+      }
+    }
+    .col {
+      padding: 5px 0px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      .container {
+        padding: 0;
+        .row {
+          display: flex;
+          justify-content: center;
+          align-items: center;
+        }
+      }
+    }
+  }
 }
 </style>

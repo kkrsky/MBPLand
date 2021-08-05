@@ -188,7 +188,7 @@
               { name: "みく", userId: "3", person_i_temp: 3 },
               { name: "ななみ", userId: "4", person_i_temp: 4 },
               { name: "なるみ", userId: "5", person_i_temp: 5 },
-              { name: "れい", userId: "6", person_i_temp: 6 },
+              { name: "れいちゃん", userId: "6", person_i_temp: 6 },
               // { name: "Guest", userId: "Guest", person_i_temp: -1 },
             ],
             selectUserObj_temp: {
@@ -231,6 +231,10 @@
             ],
 
             TYPE: { PAYMENT: "PAYMENT", RECEIVE: "RECEIVE", ADMIN: "ADMIN" },
+          },
+          historyObj: {
+            list: [],
+            selectHistoryObj: {},
           },
           subscObj: {
             refName: "subscribe_form",
@@ -292,7 +296,8 @@
               attribute: null,
               buyUserId: null,
               buyUserName: null,
-              requestUserIdArry: [],
+              requestUserId: [],
+              requestUserName: [],
               name: null,
               num: null,
               price: null,
@@ -324,69 +329,83 @@
             "ZZZ",
           ],
           leftDrowerList: [
-            {
-              id: 0,
-              text: "全体のお知らせ",
-              icon: "mdi-newspaper",
-              goto: "/",
-              isShow: true,
-            },
+            // {
+            //   id: 0,
+            //   text: "全体のお知らせ",
+            //   icon: "mdi-newspaper",
+            //   goto: "/",
+            //   isShow: true,
+            // },
             {
               id: 1,
-              text: "みんなのおかねのやりとり",
+              text: "おかねのやりとり",
               icon: "mdi-credit-card-multiple",
               goto: "/",
               isShow: true,
             },
             {
-              id: 2,
-              text: "あなたのおかねのやりとり",
-              icon: "mdi-credit-card",
-              goto: "/",
-              isShow: true,
-            },
-            {
-              id: 3,
-              text: "支払いリスト",
+              id: 4,
+              text: "支払い登録",
               icon: "mdi-export",
               goto: "/",
-              isShow: true,
-            },
-            {
-              id: 4,
-              text: "請求リスト",
-              icon: "mdi-import",
-              goto: "/",
-              isShow: true,
+              isShow: false,
             },
             {
               id: 5,
-              text: "請求を追加",
-              icon: "mdi-import",
+              text: "おかねのやりとり履歴",
+              icon: "mdi-history",
               goto: "/",
-              isShow: true,
+              isShow: false,
             },
-            {
-              id: 6,
-              text: "設定",
-              icon: "mdi-settings",
-              goto: "settings",
-              isShow: true,
-            },
-            {
-              id: 7,
-              text: "テスト",
-              icon: "mdi-flag",
-              goto: "test",
-              isShow: true,
-            },
-            {
-              id: 8,
-              text: "テスト2",
-              icon: "mdi-flag",
-              goto: "test",
-              isShow: true,
-            },
+            // {
+            //   id: 2,
+            //   text: "あなたのおかねのやりとり",
+            //   icon: "mdi-credit-card",
+            //   goto: "/",
+            //   isShow: true,
+            // },
+            // {
+            //   id: 3,
+            //   text: "支払いリスト",
+            //   icon: "mdi-export",
+            //   goto: "/",
+            //   isShow: true,
+            // },
+            // {
+            //   id: 4,
+            //   text: "請求リスト",
+            //   icon: "mdi-import",
+            //   goto: "/",
+            //   isShow: true,
+            // },
+            // {
+            //   id: 5,
+            //   text: "請求を追加",
+            //   icon: "mdi-import",
+            //   goto: "/",
+            //   isShow: true,
+            // },
+            // {
+            //   id: 6,
+            //   text: "設定",
+            //   icon: "mdi-settings",
+            //   goto: "settings",
+            //   isShow: true,
+            // },
+            // {
+            //   id: 7,
+            //   text: "テスト",
+            //   icon: "mdi-flag",
+            //   goto: "test",
+            //   isShow: true,
+            // },
+            // {
+            //   id: 8,
+            //   text: "テスト2",
+            //   icon: "mdi-flag",
+            //   goto: "test",
+            //   isShow: true,
+            // },
           ],
         };
       },
@@ -396,7 +415,7 @@
       mounted() {
         window.setTimeout(() => {
           this.initDeviceready();
-        }, 1000);
+        }, 10);
       },
       computed: {
         isSnackbar: {
@@ -422,12 +441,14 @@
           this.initQueryData(queryData);
           await this.initMemberObj();
           this.initUserObj(this.queryObj.userId);
-          this.initSubscribeList();
+          // this.initSubscribeList();
           await this.initDealObj();
           this.initDealDisplayList();
-
+          // await this.initHistoryObj();
+          console.log("this.userObj", this.userObj);
           console.log("this.subscObj", this.subscObj);
           console.log("this.dealObj", this.dealObj);
+          console.log("this.historyObj", this.historyObj);
         },
         initQueryData(queryData) {
           let keys = Object.keys(queryData);
@@ -1558,7 +1579,23 @@
             },
           ];
         },
-
+        async initHistoryObj() {
+          let historySheetDataArry = await gasFunc("getHistoryList");
+          // console.log("historySheetDataArry", historySheetDataArry);
+          historySheetDataArry = JSON.parse(historySheetDataArry);
+          let { sheetName, dataLabelArry, sheetDataArry } =
+            historySheetDataArry;
+          this.historyObj.list = sheetDataArry.map((dataArry) => {
+            let obj = {};
+            dataLabelArry.forEach((key, key_i) => {
+              obj[key] = dataArry[key_i];
+            });
+            return obj;
+          });
+          // let historySheetDataArry_demo = JSON.parse(
+          //   '{"sheetName":"deal_form","dataLabelArry":["id","createAt","deleteAt","updateAt","submitType","attribute","buyUserId","buyUserName","requestUserId","requestUserName","name","num","price","sumPrice","memo","imageName","imageUrl"],"sheetDataArry":[[1,1627914759503,"","","SUBSCRIBE","LISTED","U908d37a8e2f8d8ccf51edcf44ddbffd1","紅林 亮平","SUBSCRIBE","SUBSCRIBE","米",5,44,220,"b","2021_08_02_23h32min39sec","https://drive.google.com/file/d/1y35PeK5rU9uBBn3msO68SQhvyuQWej-w/view?usp=drivesdk"],[2,1627914759503,"","","SUBSCRIBE","ADD","U908d37a8e2f8d8ccf51edcf44ddbffd1","紅林 亮平","SUBSCRIBE","SUBSCRIBE","a",4,4,16,"b","2021_08_02_23h32min39sec","https://drive.google.com/file/d/1y35PeK5rU9uBBn3msO68SQhvyuQWej-w/view?usp=drivesdk"],[3,1627914759503,"","","SUBSCRIBE","OTHER","U908d37a8e2f8d8ccf51edcf44ddbffd1","紅林 亮平","SUBSCRIBE","SUBSCRIBE","v",5,4,20,"b","2021_08_02_23h32min39sec","https://drive.google.com/file/d/1y35PeK5rU9uBBn3msO68SQhvyuQWej-w/view?usp=drivesdk"],[4,1627914817325,"","","SUBSCRIBE","LISTED","U908d37a8e2f8d8ccf51edcf44ddbffd1","紅林 亮平","SUBSCRIBE","SUBSCRIBE","米",5,44,220,"b","2021_08_02_23h33min37sec","https://drive.google.com/file/d/1p_I8fdsSWC7nI8t8b_BZVw2hv5Ar7WUe/view?usp=drivesdk"],[5,1627914817325,"","","SUBSCRIBE","ADD","U908d37a8e2f8d8ccf51edcf44ddbffd1","紅林 亮平","SUBSCRIBE","SUBSCRIBE","a",4,4,16,"b","2021_08_02_23h33min37sec","https://drive.google.com/file/d/1p_I8fdsSWC7nI8t8b_BZVw2hv5Ar7WUe/view?usp=drivesdk"],[6,1627914817325,"","","SUBSCRIBE","OTHER","U908d37a8e2f8d8ccf51edcf44ddbffd1","紅林 亮平","SUBSCRIBE","SUBSCRIBE","v",5,4,20,"b","2021_08_02_23h33min37sec","https://drive.google.com/file/d/1p_I8fdsSWC7nI8t8b_BZVw2hv5Ar7WUe/view?usp=drivesdk"]]}'
+          // );
+        },
         initDeviceready() {
           this.deviceready = true;
           let tes = window.document.getElementById("app");
@@ -1625,6 +1662,7 @@
         },
 
         formatDate(date, timeZone, format) {
+          date = new Date(date);
           if (!format) var format = "yyyy/MM/dd HH:mm";
           format = format.replace(/yyyy/g, date.getFullYear());
           format = format.replace(
@@ -1856,7 +1894,8 @@
                 attribute: ATTRIBUTE_LIST.LISTED,
                 buyUserId: this.memberObj.selectMemberObj.userId,
                 buyUserName: this.memberObj.selectMemberObj.name,
-                requestUserIdArry: [this.paymentObj.TYPE.SUBSCRIBE],
+                requestUserId: [this.paymentObj.TYPE.SUBSCRIBE],
+                requestUserName: [this.paymentObj.TYPE.SUBSCRIBE],
                 name: selectItem,
                 price: priceArry[select_i],
                 sumPrice:
@@ -1894,7 +1933,8 @@
                 attribute: ATTRIBUTE_LIST.ADD,
                 buyUserId: this.memberObj.selectMemberObj.userId,
                 buyUserName: this.memberObj.selectMemberObj.name,
-                requestUserIdArry: [this.paymentObj.TYPE.SUBSCRIBE],
+                requestUserId: [this.paymentObj.TYPE.SUBSCRIBE],
+                requestUserName: [this.paymentObj.TYPE.SUBSCRIBE],
                 date: dateUNIX,
                 name: selectItem,
                 price: priceArry_add[select_i],
@@ -1935,7 +1975,8 @@
                   attribute: ATTRIBUTE_LIST.OTHER,
                   buyUserId: this.memberObj.selectMemberObj.userId,
                   buyUserName: this.memberObj.selectMemberObj.name,
-                  requestUserIdArry: [this.paymentObj.TYPE.SUBSCRIBE],
+                  requestUserId: [this.paymentObj.TYPE.SUBSCRIBE],
+                  requestUserName: [this.paymentObj.TYPE.SUBSCRIBE],
 
                   date: dateUNIX,
                   name: selectItem,
@@ -2005,18 +2046,7 @@
               this.userObj_temp.selectUserObj_temp.person_i_temp;
             dealPersonList = this.dealObj.list[person_i_temp];
           }
-          dealPersonList.paymentList = dealPersonList.paymentList.map(
-            (list) => {
-              list.type = "PAYMENT";
-              return list;
-            }
-          );
-          dealPersonList.receiveList = dealPersonList.receiveList.map(
-            (list) => {
-              list.type = "RECEIVE";
-              return list;
-            }
-          );
+
           let dealList = dealPersonList.paymentList.concat(
             dealPersonList.receiveList
           );
@@ -2055,10 +2085,43 @@
           this.dealObj.isLoading = false;
         },
         paymentAction(item) {
-          console.log("paymentAction", item);
           //お金を渡しっときのフォーム
-          window.location.href =
+          let formId_price = "entry.127161279"; //支払ったときのフォームの値段のid
+          let payPrice = item.payment_price;
+          let formId_receive = "entry.1552431037"; //受け取りて
+          let people_receive = item.name;
+          let formId_payment = "entry.1923824095"; //支払い者
+          let people_payment = this.userObj_temp.selectUserObj_temp.name;
+
+          let baseUrl =
             "https://docs.google.com/forms/d/e/1FAIpQLScEsud7xV_KfqEWiVFgOSG1VBfLu8hHa-zLmnh0_Ymv4Iv_6A/viewform";
+          let formUrl =
+            baseUrl +
+            "?" +
+            formId_price +
+            "=" +
+            payPrice +
+            "&" +
+            formId_receive +
+            "=" +
+            people_receive +
+            "&" +
+            formId_payment +
+            "=" +
+            people_payment;
+
+          console.log(
+            "paymentAction",
+            item,
+            payPrice,
+            people_payment,
+            people_receive,
+            formUrl
+          );
+          formUrl = encodeURI(formUrl);
+          window.open(formUrl);
+          // window.location.href =
+          //   "https://docs.google.com/forms/d/e/1FAIpQLScEsud7xV_KfqEWiVFgOSG1VBfLu8hHa-zLmnh0_Ymv4Iv_6A/viewform";
         },
         getDealDisplayColor({ type, value }) {
           let resColor = "";
@@ -2076,6 +2139,11 @@
           }
           return resColor;
         },
+
+        ///////////////////
+        //history
+        //////////////////
+
         ///////////////////
         //form
         //////////////////
@@ -2086,7 +2154,8 @@
           //   updateAt,
           //   attribute,
           //   buyUserId,
-          //   requestUserIdArry,
+          //   requestUserId,
+          //   requestUserName,
           //   name,
           //   num,
           //   price,

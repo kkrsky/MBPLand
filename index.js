@@ -18,7 +18,7 @@ let FOLDER_ID_PHOTO_RECIPT = getPrivate("FOLDER_ID_PHOTO_RECIPT");
 var spreadSheet = SpreadsheetApp.openById(MASTER_SPREAD_SHEET_ID);
 // var sheet_user = spreadSheet.getSheetByName("user");
 // var sheet_subscribe = spreadSheet.getSheetByName("subscribe");
-// var sheet_dealForm = spreadSheet.getSheetByName("deal_form");
+// var sheet_history = spreadSheet.getSheetByName("deal_form");
 
 let templateIconId = "1lM0CcoR__FzewvQ6kuH-mrksZRuSsOoG";
 let templateIconUrl = getFileUrl(templateIconId);
@@ -245,7 +245,7 @@ let sheet_subscribe = new DoSheet({
   sheetName: "subscribe",
   dataLabelArry: ["itemList", "totalPrice", "totalBuy"],
 });
-let sheet_dealForm = new DoSheet({
+let sheet_history = new DoSheet({
   sheetId: MASTER_SPREAD_SHEET_ID,
   sheetName: "deal_form",
   dataLabelArry: [
@@ -257,7 +257,8 @@ let sheet_dealForm = new DoSheet({
     "attribute",
     "buyUserId",
     "buyUserName",
-    "requestUserIdArry",
+    "requestUserId",
+    "requestUserName",
     "name",
     "num",
     "price",
@@ -278,7 +279,7 @@ let sheet_user = new DoSheet({
     "name",
     "userId",
     "Status",
-    "Icon",
+    "iconUrl",
     "undef",
   ],
 });
@@ -371,7 +372,7 @@ function SubmitMail(e) {
 }
 
 function formatter(replyObj) {
-  let { type, message } = replyObj;
+  let { type, message, queryObj } = replyObj;
   let replyMessage = [];
   switch (type) {
     case "simpleReply": {
@@ -424,6 +425,9 @@ function formatter(replyObj) {
       break;
     }
     case "dealMoney": {
+      let homePageUrl =
+        "https://script.google.com/macros/s/AKfycbwpJFO1qw9Se-j5dpAVjOqsWTGXwicKKO6D1cbep4DsH9_-4rI/exec";
+
       replyMessage.push({
         type: "flex",
         altText: "[おかねのやりとり]",
@@ -505,7 +509,8 @@ function formatter(replyObj) {
                 action: {
                   type: "uri",
                   label: "おかねのやりとり確認",
-                  uri: "https://docs.google.com/spreadsheets/d/1u6SgXL18BRPL8r3_QlAjavL-SR7Z2SuT-LP0LCangZk/edit?usp=sharing",
+                  uri: createUrlQuery(queryObj, homePageUrl),
+                  // uri: "https://docs.google.com/spreadsheets/d/1u6SgXL18BRPL8r3_QlAjavL-SR7Z2SuT-LP0LCangZk/edit?usp=sharing",
                 },
               },
               {
@@ -576,6 +581,9 @@ function getSubscribeList() {
 function getDealList() {
   return JSON.stringify(sheet_deal.getDataForClient);
 }
+function getHistoryList() {
+  return JSON.stringify(sheet_history.getDataForClient);
+}
 function getPost_subscribe(postedArry, imageDataObj) {
   debug("posted obj", JSON.stringify(postedArry));
   let blob = convertBase64ToBlob(imageDataObj.base64, imageDataObj.name);
@@ -586,7 +594,7 @@ function getPost_subscribe(postedArry, imageDataObj) {
   });
 
   postedArry.forEach((arr) => {
-    sheet_dealForm.appendRow(arr, { isIncrement: true });
+    sheet_history.appendRow(arr, { isIncrement: true });
   });
 }
 function getMemberList() {}
@@ -630,9 +638,9 @@ function getSheetDealData(obj) {
     isActive, //重複可能 論理削除されていないデータを取得
     latest, //重複可能 任意の最新の件数だけデータを取得
   } = obj;
-  var lastRow_deal = sheet_dealForm.getLastRow();
-  var lastCol_deal = sheet_dealForm.getLastColumn();
-  var dealArry = sheet_dealForm
+  var lastRow_deal = sheet_history.getLastRow();
+  var lastCol_deal = sheet_history.getLastColumn();
+  var dealArry = sheet_history
     .getRange(1, 1, lastRow_deal, lastCol_deal)
     .getValues();
 
@@ -891,6 +899,7 @@ async function doMessage(event) {
   let replyObj = {
     type: "simpleReply",
     message: "",
+    queryObj: {},
   };
 
   //送られたメッセージ内容を取得
@@ -914,6 +923,7 @@ async function doMessage(event) {
         case "[おかねのやりとり]": {
           replyObj.type = "dealMoney";
           replyObj.message = fromMsg;
+          replyObj.queryObj.userId = userId;
 
           break;
         }
